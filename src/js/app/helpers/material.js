@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
-import Config from '../../data/config';
+import Config from "../../data/config";
 
 // USe this class as a helper to set up some default materials
 export default class Material {
@@ -12,13 +12,12 @@ export default class Material {
 
     this.standard = new THREE.MeshStandardMaterial({
       color,
-      shading: THREE.FlatShading,
+      flatShading: THREE.FlatShading,
       roughness: 1,
       metalness: 0,
       side: THREE.DoubleSide
     });
 
-    this.wire = new THREE.MeshBasicMaterial({wireframe: true});
+    this.wire = new THREE.MeshBasicMaterial({ wireframe: true });
   }
 }
-

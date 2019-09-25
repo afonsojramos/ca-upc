@@ -31,6 +31,13 @@ export default class Main {
     // Set container property to container element
     this.container = container;
 
+    this.init();
+
+    // Start render which does not wait for model fully loaded
+    this.render();
+  }
+
+  init() {
     // Start Three clock
     this.clock = new THREE.Clock();
 
@@ -44,11 +51,11 @@ export default class Main {
     }
 
     // Main renderer constructor
-    this.renderer = new Renderer(this.scene, container);
+    this.renderer = new Renderer(this.scene, this.container);
 
     // Components instantiations
     this.camera = new Camera(this.renderer.threeRenderer);
-    this.controls = new Controls(this.camera.threeCamera, container);
+    this.controls = new Controls(this.camera.threeCamera, this.container);
     this.light = new Light(this.scene);
 
     // Create and place lights in scene
@@ -102,9 +109,6 @@ export default class Main {
         this.container.querySelector("#loading").style.display = "none";
       };
     });
-
-    // Start render which does not wait for model fully loaded
-    this.render();
   }
 
   render() {

@@ -31,7 +31,9 @@
         "no-fallthrough": 1,
         "no-octal": 1,
         "no-proto": 1,
-        "no-redeclare": [1, {"builtinGlobals": true}],
+        "no-redeclare": [1, {
+            "builtinGlobals": true
+        }],
         "no-useless-call": 1,
         "no-delete-var": 1,
         "no-undef-init": 1,
@@ -39,7 +41,9 @@
         "no-unused-vars": 1,
         "camelcase": 1,
         "eol-last": 1,
-        "indent": [1, 2, {"SwitchCase": 1}],
+        "indent": [1, 2, {
+            "SwitchCase": 1
+        }],
         "no-array-constructor": 1,
         "no-continue": 1,
         "no-lonely-if": 1,
