@@ -33,6 +33,8 @@ export default class Main {
 
     this.init();
 
+    this.particle();
+
     // Start render which does not wait for model fully loaded
     this.render();
   }
@@ -65,7 +67,7 @@ export default class Main {
     // Create and place geo in scene
     this.geometry = new Geometry(this.scene);
     this.geometry.make("plane")(150, 150, 10, 10);
-    this.geometry.place([0, -20, 0], [Math.PI / 2, 0, 0]);
+    this.geometry.place([0, -2, 0], [Math.PI / 2, 0, 0]);
 
     // Set up rStats if dev environment
     if (Config.isDev && Config.isShowingStats) {
@@ -77,6 +79,10 @@ export default class Main {
     this.texture = new Texture();
 
     // Start loading the textures and then go on to load the model after the texture Promises have resolved
+    if (!this.textures) {
+      this.container.querySelector("#loading").style.display = "none";
+      return;
+    }
     this.texture.load().then(() => {
       this.manager = new THREE.LoadingManager();
 
@@ -111,7 +117,31 @@ export default class Main {
     });
   }
 
-  render() {
+  particle() {
+    const boxWidth = 1;
+    const boxHeight = 1;
+    const boxDepth = 1;
+    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+    function makeInstance(scene, geometry, color, x) {
+      const material = new THREE.MeshPhongMaterial({ color });
+
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      cube.position.x = x;
+
+      return cube;
+    }
+
+    this.cubes = [
+      makeInstance(this.scene, geometry, 0x44aa88, 0),
+      makeInstance(this.scene, geometry, 0x8844aa, -2),
+      makeInstance(this.scene, geometry, 0xaa8844, 2)
+    ];
+  }
+
+  render(time) {
     // Render rStats if Dev
     if (Config.isDev && Config.isShowingStats) {
       Stats.start();
@@ -126,11 +156,21 @@ export default class Main {
     }
 
     // Delta time is sometimes needed for certain updates
-    //const delta = this.clock.getDelta();
+    // const delta = this.clock.getDelta();
+    time *= 0.001;
 
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
+
+    if (this.cubes)
+      this.cubes.forEach((cube, ndx) => {
+        const speed = 1 + ndx * 0.1;
+        const rot = time * speed;
+        cube.position.y -= 0.0001;
+        cube.rotation.x = rot;
+        cube.rotation.y = rot;
+      });
 
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
