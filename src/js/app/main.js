@@ -4,10 +4,10 @@ import TWEEN from "tween.js";
 
 // Local imports -
 // Components
-import Renderer from "./components/renderer";
-import Camera from "./components/camera";
-import Light from "./components/light";
-import Controls from "./components/controls";
+import Renderer from "./components/engine/renderer";
+import Camera from "./components/engine/camera";
+import Light from "./components/engine/light";
+import Controls from "./components/engine/controls";
 
 // Helpers
 import Geometry from "./helpers/geometry";
@@ -98,12 +98,7 @@ export default class Main {
       // All loaders done now
       this.manager.onLoad = () => {
         // Set up interaction manager with the app now that the model is finished loading
-        new Interaction(
-          this.renderer.threeRenderer,
-          this.scene,
-          this.camera.threeCamera,
-          this.controls.threeControls
-        );
+        new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
 
         // Add dat.GUI controls if dev
         if (Config.isDev) {
@@ -134,11 +129,7 @@ export default class Main {
       return cube;
     }
 
-    this.cubes = [
-      makeInstance(this.scene, geometry, 0x44aa88, 0),
-      makeInstance(this.scene, geometry, 0x8844aa, -2),
-      makeInstance(this.scene, geometry, 0xaa8844, 2)
-    ];
+    this.cubes = [makeInstance(this.scene, geometry, 0x44aa88, 0), makeInstance(this.scene, geometry, 0x8844aa, -2), makeInstance(this.scene, geometry, 0xaa8844, 2)];
   }
 
   render(time) {

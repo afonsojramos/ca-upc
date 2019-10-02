@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import Config from "../../data/config";
+import Config from "../../../data/config";
 
 // Main webGL renderer class
 export default class Renderer {
@@ -30,19 +30,12 @@ export default class Renderer {
     this.updateSize();
 
     // Listeners
-    document.addEventListener(
-      "DOMContentLoaded",
-      () => this.updateSize(),
-      false
-    );
+    document.addEventListener("DOMContentLoaded", () => this.updateSize(), false);
     window.addEventListener("resize", () => this.updateSize(), false);
   }
 
   updateSize() {
-    this.threeRenderer.setSize(
-      this.container.offsetWidth,
-      this.container.offsetHeight
-    );
+    this.threeRenderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
   }
 
   render(scene, camera) {

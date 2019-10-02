@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
-import Config from '../../data/config';
+import Config from "../../../data/config";
 
 // Class that creates and updates the main camera
 export default class Camera {
@@ -14,9 +14,9 @@ export default class Camera {
 
     // Initial sizing
     this.updateSize(renderer);
-    
+
     // Listeners
-    window.addEventListener('resize', () => this.updateSize(renderer), false);
+    window.addEventListener("resize", () => this.updateSize(renderer), false);
   }
 
   updateSize(renderer) {

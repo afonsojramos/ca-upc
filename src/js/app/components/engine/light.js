@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
-import Config from '../../data/config';
+import Config from "../../../data/config";
 
 // Sets up and places all lights in scene
 export default class Light {
@@ -48,21 +48,21 @@ export default class Light {
   }
 
   place(lightName) {
-    switch(lightName) {
-      case 'ambient':
+    switch (lightName) {
+      case "ambient":
         this.scene.add(this.ambientLight);
         break;
 
-      case 'directional':
+      case "directional":
         this.scene.add(this.directionalLight);
         this.scene.add(this.directionalLightHelper);
         break;
 
-      case 'point':
+      case "point":
         this.scene.add(this.pointLight);
         break;
 
-      case 'hemi':
+      case "hemi":
         this.scene.add(this.hemiLight);
         break;
     }
