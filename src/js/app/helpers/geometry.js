@@ -23,10 +23,27 @@ export default class Geometry {
         this.geo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
       };
     }
+
+    if (type === 'triangle') {
+      return (point1, point2, point3) => {
+        var geometry = new THREE.Geometry();
+        geometry.vertices.push(point1);
+        geometry.vertices.push(point2);
+        geometry.vertices.push(point3);
+        geometry.faces.push(new THREE.Face3(0, 1, 2));
+        geometry.faces.push(new THREE.Face3(2, 1, 0));
+        const triangle = new THREE.Mesh(geometry, new Material(0xff0000).standard);
+        this.scene.add(triangle);
+      };
+    }
   }
 
-  place(position, rotation) {
-    const material = new Material(0xeeeeee).standard;
+  place(position, rotation, opacity, color = 0xeeeeee) {
+    const material = new Material(color).standard;
+    if (opacity) {
+      material.opacity = opacity;
+      material.transparent = true;
+    }
     const mesh = new THREE.Mesh(this.geo, material);
 
     // Use ES6 spread to set position and rotation from passed in array
