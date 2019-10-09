@@ -1,31 +1,31 @@
 // Global imports -
-import * as THREE from "three";
-import TWEEN from "tween.js";
+import * as THREE from 'three';
+import TWEEN from 'tween.js';
 
 // Local imports -
 // Components
-import Particle from "./components/particle";
+import Particle from './components/particle';
 
 // Engine Components
-import Renderer from "./components/engine/renderer";
-import Camera from "./components/engine/camera";
-import Light from "./components/engine/light";
-import Controls from "./components/engine/controls";
+import Renderer from './components/engine/renderer';
+import Camera from './components/engine/camera';
+import Light from './components/engine/light';
+import Controls from './components/engine/controls';
 
 // Helpers
-import Geometry from "./helpers/geometry";
-import Stats from "./helpers/stats";
+import Geometry from './helpers/geometry';
+import Stats from './helpers/stats';
 
 // Model
-import Texture from "./model/texture";
-import Model from "./model/model";
+import Texture from './model/texture';
+import Model from './model/model';
 
 // Managers
-import Interaction from "./managers/interaction";
-import DatGUI from "./managers/datGUI";
+import Interaction from './managers/interaction';
+import DatGUI from './managers/datGUI';
 
 // data
-import Config from "../data/config";
+import Config from '../data/config';
 // -- End of imports
 
 // This class instantiates and ties all of the components together, starts the loading process and renders the main loop
@@ -64,12 +64,12 @@ export default class Main {
     this.light = new Light(this.scene);
 
     // Create and place lights in scene
-    const lights = ["ambient", "directional", "point", "hemi"];
+    const lights = ['ambient', 'directional', 'point', 'hemi'];
     lights.forEach(light => this.light.place(light));
 
     // Create and place geo in scene
     this.geometry = new Geometry(this.scene);
-    this.geometry.make("plane")(150, 150, 10, 10);
+    this.geometry.make('plane')(150, 150, 10, 10);
     this.geometry.place([0, -2, 0], [Math.PI / 2, 0, 0]);
 
     // Set up rStats if dev environment
@@ -83,7 +83,7 @@ export default class Main {
 
     // Start loading the textures and then go on to load the model after the texture Promises have resolved
     if (!this.textures) {
-      this.container.querySelector("#loading").style.display = "none";
+      this.container.querySelector('#loading').style.display = 'none';
       Config.isLoaded = true;
       return;
     }
@@ -116,7 +116,7 @@ export default class Main {
 
         // Everything is now fully loaded
         Config.isLoaded = true;
-        this.container.querySelector("#loading").style.display = "none";
+        this.container.querySelector('#loading').style.display = 'none';
       };
     });
   }
@@ -148,8 +148,7 @@ export default class Main {
     TWEEN.update();
     this.controls.threeControls.update();
 
-    this.particle.updateParticle(delta, "EulerOrig");
-    console.log(delta, this.particle.currPosition);
+    this.particle.updateParticle(delta, 'EulerOrig');
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
   }

@@ -1,4 +1,4 @@
-import TWEEN from "tween.js";
+import TWEEN from 'tween.js';
 
 // This object contains the state of the app
 export default {
@@ -77,7 +77,7 @@ export default {
   },
   shadow: {
     enabled: true,
-    helperEnabled: true,
+    helperEnabled: false,
     bias: 0,
     mapWidth: 2048,
     mapHeight: 2048,
