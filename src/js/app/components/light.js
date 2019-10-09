@@ -1,6 +1,6 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
-import Config from "../../../data/config";
+import Config from '../../data/config';
 
 // Sets up and places all lights in scene
 export default class Light {
@@ -16,13 +16,24 @@ export default class Light {
     this.ambientLight.visible = Config.ambientLight.enabled;
 
     // Point light
-    this.pointLight = new THREE.PointLight(Config.pointLight.color, Config.pointLight.intensity, Config.pointLight.distance);
+    this.pointLight = new THREE.PointLight(
+      Config.pointLight.color,
+      Config.pointLight.intensity,
+      Config.pointLight.distance
+    );
     this.pointLight.position.set(Config.pointLight.x, Config.pointLight.y, Config.pointLight.z);
     this.pointLight.visible = Config.pointLight.enabled;
 
     // Directional light
-    this.directionalLight = new THREE.DirectionalLight(Config.directionalLight.color, Config.directionalLight.intensity);
-    this.directionalLight.position.set(Config.directionalLight.x, Config.directionalLight.y, Config.directionalLight.z);
+    this.directionalLight = new THREE.DirectionalLight(
+      Config.directionalLight.color,
+      Config.directionalLight.intensity
+    );
+    this.directionalLight.position.set(
+      Config.directionalLight.x,
+      Config.directionalLight.y,
+      Config.directionalLight.z
+    );
     this.directionalLight.visible = Config.directionalLight.enabled;
 
     // Shadow map
@@ -42,27 +53,31 @@ export default class Light {
     this.directionalLightHelper.visible = Config.shadow.helperEnabled;
 
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(Config.hemiLight.color, Config.hemiLight.groundColor, Config.hemiLight.intensity);
+    this.hemiLight = new THREE.HemisphereLight(
+      Config.hemiLight.color,
+      Config.hemiLight.groundColor,
+      Config.hemiLight.intensity
+    );
     this.hemiLight.position.set(Config.hemiLight.x, Config.hemiLight.y, Config.hemiLight.z);
     this.hemiLight.visible = Config.hemiLight.enabled;
   }
 
   place(lightName) {
     switch (lightName) {
-      case "ambient":
+      case 'ambient':
         this.scene.add(this.ambientLight);
         break;
 
-      case "directional":
+      case 'directional':
         this.scene.add(this.directionalLight);
         this.scene.add(this.directionalLightHelper);
         break;
 
-      case "point":
+      case 'point':
         this.scene.add(this.pointLight);
         break;
 
-      case "hemi":
+      case 'hemi':
         this.scene.add(this.hemiLight);
         break;
     }

@@ -4,17 +4,15 @@ import TWEEN from 'tween.js';
 
 // Local imports -
 // Components
-import Particle from './components/particle';
-
-// Engine Components
-import Renderer from './components/engine/renderer';
-import Camera from './components/engine/camera';
-import Light from './components/engine/light';
-import Controls from './components/engine/controls';
+import Renderer from './components/renderer';
+import Camera from './components/camera';
+import Light from './components/light';
+import Controls from './components/controls';
 
 // Helpers
 import Geometry from './helpers/geometry';
 import Stats from './helpers/stats';
+import Particle from './helpers/particle';
 
 // Model
 import Texture from './model/texture';
