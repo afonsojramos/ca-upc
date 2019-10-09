@@ -4,6 +4,9 @@ import TWEEN from "tween.js";
 
 // Local imports -
 // Components
+import Particle from "./components/particle";
+
+// Engine Components
 import Renderer from "./components/engine/renderer";
 import Camera from "./components/engine/camera";
 import Light from "./components/engine/light";
@@ -81,6 +84,7 @@ export default class Main {
     // Start loading the textures and then go on to load the model after the texture Promises have resolved
     if (!this.textures) {
       this.container.querySelector("#loading").style.display = "none";
+      Config.isLoaded = true;
       return;
     }
     this.texture.load().then(() => {
@@ -98,7 +102,12 @@ export default class Main {
       // All loaders done now
       this.manager.onLoad = () => {
         // Set up interaction manager with the app now that the model is finished loading
-        new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
+        new Interaction(
+          this.renderer.threeRenderer,
+          this.scene,
+          this.camera.threeCamera,
+          this.controls.threeControls
+        );
 
         // Add dat.GUI controls if dev
         if (Config.isDev) {
@@ -113,23 +122,7 @@ export default class Main {
   }
 
   particle() {
-    const boxWidth = 1;
-    const boxHeight = 1;
-    const boxDepth = 1;
-    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-    function makeInstance(scene, geometry, color, x) {
-      const material = new THREE.MeshPhongMaterial({ color });
-
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-
-      cube.position.x = x;
-
-      return cube;
-    }
-
-    this.cubes = [makeInstance(this.scene, geometry, 0x44aa88, 0), makeInstance(this.scene, geometry, 0x8844aa, -2), makeInstance(this.scene, geometry, 0xaa8844, 2)];
+    this.particle = new Particle(0, 0, 0, 1, this.scene);
   }
 
   render(time) {
