@@ -14,12 +14,12 @@ export default {
   easing: TWEEN.Easing.Quadratic.InOut,
   duration: 500,
   /* model: {
-    path: "./assets/models/Teapot.json",
+    path: './assets/models/Teapot.json',
     scale: 1
   },
   texture: {
-    path: "./assets/textures/",
-    imageFiles: [{ name: "UV", image: "UV_Grid_Sm.jpg" }]
+    path: './assets/textures/',
+    imageFiles: [{ name: 'UV', image: 'UV_Grid_Sm.jpg' }]
   }, */
   mesh: {
     enableHelper: false,
@@ -40,8 +40,8 @@ export default {
     far: 1000,
     aspect: 1,
     posX: 0,
-    posY: 30,
-    posZ: 40
+    posY: 120,
+    posZ: 160
   },
   controls: {
     autoRotate: false,
