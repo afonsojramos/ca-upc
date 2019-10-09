@@ -67,11 +67,6 @@ export default class Main {
     const lights = ['ambient', 'directional', 'point', 'hemi'];
     lights.forEach(light => this.light.place(light));
 
-    // Create and place geo in scene
-    this.geometry = new Geometry(this.scene);
-    this.geometry.make('plane')(150, 150, 10, 10);
-    this.geometry.place([0, -2, 0], [Math.PI / 2, 0, 0]);
-
     // Set up rStats if dev environment
     if (Config.isDev && Config.isShowingStats) {
       this.stats = new Stats(this.renderer);
@@ -138,11 +133,17 @@ export default class Main {
   }
 
   particleFountain() {
-    this.particle = new Particle(0, 0, 0, 1, this.scene);
-    this.particle.setVelocity(0, 0, 2);
+    this.particles = [];
+    for (let i = 0; i < 100; i++) {
+      var randX = Math.floor(Math.random() * (5 + 5 + 1)) - 5;
+      var randZ = Math.floor(Math.random() * (5 + 5 + 1)) - 5;
+      this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
+      var randv = Math.random(this.clock.getDelta()) * (-2 + 5 + 1) - 5;
+      this.particles[i].setVelocity(0, randv, 0);
+    }
   }
 
-  render(time) {
+  render() {
     // Render rStats if Dev
     if (Config.isDev && Config.isShowingStats) {
       Stats.start();
@@ -158,13 +159,14 @@ export default class Main {
 
     // Delta time is sometimes needed for certain updates
     const delta = this.clock.getDelta();
-    time *= 0.001;
 
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
 
-    this.particle.updateParticle(delta, 'EulerOrig');
+    for (let i = 0; i < this.particles.length; i++) {
+      this.particles[i].updateParticle(delta, 'EulerOrig');
+    }
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
   }
