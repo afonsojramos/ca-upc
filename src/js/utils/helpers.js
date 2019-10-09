@@ -7,17 +7,16 @@ export default class Helpers {
     return function() {
       const context = scope || this;
 
-      const now  = +new Date,
-          args = arguments;
+      const now = +new Date(),
+        args = arguments;
 
-      if(last && now < last + threshhold) {
+      if (last && now < last + threshhold) {
         clearTimeout(deferTimer);
         deferTimer = setTimeout(function() {
           last = now;
           fn.apply(context, args);
         }, threshhold);
-      }
-      else {
+      } else {
         last = now;
         fn.apply(context, args);
       }
@@ -26,23 +25,23 @@ export default class Helpers {
 
   static logProgress() {
     return function(xhr) {
-      if(xhr.lengthComputable) {
-        const percentComplete = xhr.loaded / xhr.total * 100;
+      if (xhr.lengthComputable) {
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
 
         console.log(Math.round(percentComplete, 2) + '% downloaded');
       }
-    }
+    };
   }
 
   static logError() {
     return function(xhr) {
       console.error(xhr);
-    }
+    };
   }
 
   static handleColorChange(color) {
-    return (value) => {
-      if(typeof value === 'string') {
+    return value => {
+      if (typeof value === 'string') {
         value = value.replace('#', '0x');
       }
 

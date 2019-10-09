@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // Local vars for rStats
 let rS, bS, glS, tS;
 
@@ -26,12 +27,10 @@ export default class Stats {
         { caption: 'Framerate', values: ['fps', 'raf'] },
         { caption: 'Frame Budget', values: ['frame', 'texture', 'setup', 'render'] }
       ],
-      fractions: [
-        { base: 'frame', steps: ['texture', 'setup', 'render'] }
-      ],
+      fractions: [{ base: 'frame', steps: ['texture', 'setup', 'render'] }],
       plugins: [bS, tS, glS]
     });
-  };
+  }
 
   static start() {
     rS('frame').start();
@@ -41,7 +40,7 @@ export default class Stats {
     rS('FPS').frame();
 
     rS('render').start();
-  };
+  }
 
   static end() {
     rS('render').end(); // render finished
@@ -51,5 +50,5 @@ export default class Stats {
     rS('rStats').start();
     rS().update();
     rS('rStats').end();
-  };
+  }
 }

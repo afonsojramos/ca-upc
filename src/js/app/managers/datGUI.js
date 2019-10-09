@@ -3,6 +3,7 @@ import Config from '../../data/config';
 // Manages all dat.GUI interactions
 export default class DatGUI {
   constructor(main, mesh) {
+    // eslint-disable-next-line no-undef
     const gui = new dat.GUI();
 
     this.camera = main.camera.threeCamera;
