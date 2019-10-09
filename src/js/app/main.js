@@ -34,6 +34,8 @@ export default class Main {
 
     this.init();
 
+    this.createEnvironment();
+
     this.particleFountain();
 
     // Start render which does not wait for model fully loaded
@@ -117,6 +119,22 @@ export default class Main {
         this.container.querySelector('#loading').style.display = 'none';
       };
     });
+  }
+
+  createEnvironment() {
+    const base = new Geometry(this.scene);
+    base.make('plane')(100, 100, 10, 10);
+    base.place([0, -2, 0], [Math.PI / 1.9, 0, 0]);
+
+    const sphere = new Geometry(this.scene);
+    sphere.make('sphere')(10);
+    sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
+
+    const triangle = new Geometry(this.scene);
+    const point1 = new THREE.Vector3(11, -2, 6);
+    const point2 = new THREE.Vector3(0, 15, -5);
+    const point3 = new THREE.Vector3(-11, -2, 6);
+    triangle.make('triangle')(point1, point2, point3);
   }
 
   particleFountain() {
