@@ -36,7 +36,7 @@ export default class Main {
 
     this.init();
 
-    this.particle();
+    this.particleFountain();
 
     // Start render which does not wait for model fully loaded
     this.render();
@@ -121,8 +121,9 @@ export default class Main {
     });
   }
 
-  particle() {
+  particleFountain() {
     this.particle = new Particle(0, 0, 0, 1, this.scene);
+    this.particle.setVelocity(0, 0, 2);
   }
 
   render(time) {
@@ -140,22 +141,15 @@ export default class Main {
     }
 
     // Delta time is sometimes needed for certain updates
-    // const delta = this.clock.getDelta();
+    const delta = this.clock.getDelta();
     time *= 0.001;
 
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
 
-    if (this.cubes)
-      this.cubes.forEach((cube, ndx) => {
-        const speed = 1 + ndx * 0.1;
-        const rot = time * speed;
-        cube.position.y -= 0.0001;
-        cube.rotation.x = rot;
-        cube.rotation.y = rot;
-      });
-
+    this.particle.updateParticle(delta, "EulerOrig");
+    console.log(delta, this.particle.currPosition);
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
   }
