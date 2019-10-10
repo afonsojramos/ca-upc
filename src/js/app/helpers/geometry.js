@@ -44,15 +44,40 @@ export default class Geometry {
       material.opacity = opacity;
       material.transparent = true;
     }
-    const mesh = new THREE.Mesh(this.geo, material);
+    this.mesh = new THREE.Mesh(this.geo, material);
 
-    // Use ES6 spread to set position and rotation from passed in array
-    mesh.position.set(...position);
-    mesh.rotation.set(...rotation);
+    this.mesh.position.set(...position);
+    this.mesh.rotation.set(...rotation);
 
     if (Config.shadow.enabled) {
-      mesh.receiveShadow = true;
+      this.mesh.receiveShadow = true;
     }
+
+    this.scene.add(this.mesh);
+  }
+
+  detectColision({ currPosition, prevPosition }) {
+    if (this.geo.type == 'PlaneGeometry') {
+      if (
+        (prevPosition.x > this.mesh.position.x && currPosition.x < this.mesh.position.x) ||
+        (prevPosition.y > this.mesh.position.y && currPosition.y < this.mesh.position.y) ||
+        (prevPosition.z > this.mesh.position.z && currPosition.z < this.mesh.position.z) ||
+        (prevPosition.x < this.mesh.position.x && currPosition.x > this.mesh.position.x) ||
+        (prevPosition.y < this.mesh.position.y && currPosition.y > this.mesh.position.y) ||
+        (prevPosition.z < this.mesh.position.z && currPosition.z > this.mesh.position.z)
+      )
+        return true;
+    } else if (this.geo.type == 'SphereGeometry') {
+      var distance = Math.sqrt(
+        (currPosition.x - this.mesh.position.x) * (currPosition.x - this.mesh.position.x) +
+          (currPosition.y - this.mesh.position.y) * (currPosition.y - this.mesh.position.y) +
+          (currPosition.z - this.mesh.position.z) * (currPosition.z - this.mesh.position.z)
+      );
+      return distance < this.geo.collRadius;
+    } else if (this.geo.type == 'Geometry') {
+      if (currPosition.y < this.mesh.position.y) return true;
+    }
+  }
 
     this.scene.add(mesh);
   }
