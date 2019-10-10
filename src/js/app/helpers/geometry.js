@@ -28,14 +28,12 @@ export default class Geometry {
 
     if (type === 'triangle') {
       return (point1, point2, point3) => {
-        var geometry = new THREE.Geometry();
-        geometry.vertices.push(point1);
-        geometry.vertices.push(point2);
-        geometry.vertices.push(point3);
-        geometry.faces.push(new THREE.Face3(0, 1, 2));
-        geometry.faces.push(new THREE.Face3(2, 1, 0));
-        const triangle = new THREE.Mesh(geometry, new Material(0xff0000).standard);
-        this.scene.add(triangle);
+        this.geo = new THREE.Geometry();
+        this.geo.vertices.push(point1);
+        this.geo.vertices.push(point2);
+        this.geo.vertices.push(point3);
+        this.geo.faces.push(new THREE.Face3(0, 1, 2));
+        this.geo.faces.push(new THREE.Face3(2, 1, 0));
       };
     }
   }
