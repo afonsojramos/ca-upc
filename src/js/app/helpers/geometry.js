@@ -79,6 +79,17 @@ export default class Geometry {
     }
   }
 
-    this.scene.add(mesh);
+  isOutOfBounds(point) {
+    if (this.geo.type == 'PlaneGeometry') {
+      //console.log(this.mesh.position.x + this.geo.width);
+      if (
+        point.x > this.mesh.position.x + this.geo.width ||
+        point.x < this.mesh.position.x - this.geo.width ||
+        point.z > this.mesh.position.z + this.geo.width ||
+        point.z < this.mesh.position.z - this.geo.width
+      ) {
+        return true;
+      }
+    }
   }
 }
