@@ -32,7 +32,14 @@ export default class Main {
     // Set container property to container element
     this.container = container;
 
+    this.params = {
+      sphereSize: 1
+    };
+
     this.init();
+    var gui = new dat.GUI();
+
+    gui.add(this.params, 'sphereSize', 0.1, 2, 0.1);
 
     this.createEnvironment();
 
@@ -163,6 +170,15 @@ export default class Main {
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
+    //    this.sphere.make('sphere')(this.params.sphereSize);
+    //  this.sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
+    this.sphere.mesh.scale.set(
+      this.params.sphereSize,
+      this.params.sphereSize,
+      this.params.sphereSize
+    );
+
+    this.sphere.geo.collRadius = this.sphere.geo.radius * this.params.sphereSize;
 
     for (let i = 0; i < this.particles.length; i++) {
       this.particles[i].updateParticle(delta, 'EulerOrig');
