@@ -40,7 +40,7 @@ export default {
     far: 1000,
     aspect: 1,
     posX: 0,
-    posY: 120,
+    posY: 80,
     posZ: 160
   },
   controls: {

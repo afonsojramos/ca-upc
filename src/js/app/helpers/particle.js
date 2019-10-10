@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 export default class Particle {
   constructor(x, y, z, size, scene) {
@@ -55,19 +55,19 @@ export default class Particle {
   updateParticle(delta, method /*"EulerOrig" "EulerSemi" "Verlet"*/) {
     if (!this.fixed & (this.lifetime > 0)) {
       switch (method) {
-        case (method = "EulerOrig"):
+        case (method = 0):
           {
-            this.prevPosition = this.currPosition;
+            this.prevPosition = this.currPosition.clone();
             this.currPosition.add(this.velocity.clone().multiplyScalar(delta));
             this.velocity.add(this.force.clone().multiplyScalar(delta));
           }
           break;
-        case (method = "EulerSemi"):
+        case (method = 1):
           {
             // to be implemented
           }
           break;
-        case (method = "Verlet"):
+        case (method = 2):
           {
             // to be implemented
           }

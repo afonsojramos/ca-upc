@@ -33,13 +33,15 @@ export default class Main {
     this.container = container;
 
     this.params = {
-      sphereSize: 1
+      sphereSize: 1,
+      movement: 0
     };
 
     this.init();
     var gui = new dat.GUI();
 
     gui.add(this.params, 'sphereSize', 0.1, 2, 0.1);
+    gui.add(this.params, 'movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
 
     this.createEnvironment();
 
@@ -124,13 +126,13 @@ export default class Main {
   }
 
   createEnvironment() {
-    this.base = new Geometry(this.scene);
+    /* this.base = new Geometry(this.scene);
     this.base.make('plane')(100, 100, 10, 10);
-    this.base.place([0, -2, 0], [Math.PI / 1.9, 0, 0]);
+    this.base.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
 
     this.sphere = new Geometry(this.scene);
     this.sphere.make('sphere')(10);
-    this.sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
+    this.sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00); */
 
     this.triangle = new Geometry(this.scene);
     this.triangle.make('triangle')(
@@ -143,7 +145,7 @@ export default class Main {
 
   particleFountain() {
     this.particles = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 100; i++) {
       const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
@@ -173,27 +175,27 @@ export default class Main {
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
-    //    this.sphere.make('sphere')(this.params.sphereSize);
-    //  this.sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
-    this.sphere.mesh.scale.set(
-      this.params.sphereSize,
-      this.params.sphereSize,
-      this.params.sphereSize
-    );
 
-    this.sphere.geo.collRadius = this.sphere.geo.radius * this.params.sphereSize;
+    if (this.sphere) {
+      this.sphere.mesh.scale.set(
+        this.params.sphereSize,
+        this.params.sphereSize,
+        this.params.sphereSize
+      );
+      this.sphere.geo.collRadius = this.sphere.geo.radius * this.params.sphereSize;
+    }
 
     for (let i = 0; i < this.particles.length; i++) {
-      this.particles[i].updateParticle(delta, 'EulerOrig');
+      i == 0 && this.particles[i].updateParticle(delta, this.params.movement);
       if (
-        this.base.detectColision(this.particles[i]) ||
-        this.triangle.detectColision(this.particles[i]) ||
-        this.sphere.detectColision(this.particles[i])
+        (this.base && this.base.detectColision(this.particles[i])) ||
+        (this.triangle && i === 0 && this.triangle.detectColision(this.particles[i])) ||
+        (this.sphere && this.sphere.detectColision(this.particles[i]))
       ) {
-        const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-        const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+        const randX = Math.floor(Math.random() * (10 + 10 + 1)) - 10;
+        const randZ = Math.floor(Math.random() * (10 + 10 + 1)) - 10;
         this.particles[i].setPosition(randX, 40, randZ);
-        const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+        const randv = Math.random(this.clock.getDelta()) * (10 + 10 + 1) - 10;
         this.particles[i].setVelocity(0, randv, 0);
         /* this.particles[i].setVelocity(
           this.particles[i].velocity.x,
