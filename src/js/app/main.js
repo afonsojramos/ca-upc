@@ -143,9 +143,9 @@ export default class Main {
 
   particleFountain() {
     this.particles = [];
-    for (let i = 0; i < 100; i++) {
-      var randX = Math.floor(Math.random() * (5 + 5 + 1)) - 5;
-      var randZ = Math.floor(Math.random() * (5 + 5 + 1)) - 5;
+    for (let i = 0; i < 5; i++) {
+      const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+      const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
       var randv = Math.random(this.clock.getDelta()) * (-2 + 5 + 1) - 5;
       this.particles[i].setVelocity(0, randv, 0);
