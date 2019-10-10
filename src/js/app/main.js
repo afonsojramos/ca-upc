@@ -147,8 +147,9 @@ export default class Main {
       const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
-      var randv = Math.random(this.clock.getDelta()) * (-2 + 5 + 1) - 5;
+      const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
       this.particles[i].setVelocity(0, randv, 0);
+      this.particles[i].setForce(0, -10, 0);
     }
   }
 
@@ -184,7 +185,31 @@ export default class Main {
 
     for (let i = 0; i < this.particles.length; i++) {
       this.particles[i].updateParticle(delta, 'EulerOrig');
+      if (
+        this.base.detectColision(this.particles[i]) ||
+        this.triangle.detectColision(this.particles[i]) ||
+        this.sphere.detectColision(this.particles[i])
+      ) {
+        const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+        const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+        this.particles[i].setPosition(randX, 40, randZ);
+        const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+        this.particles[i].setVelocity(0, randv, 0);
+        /* this.particles[i].setVelocity(
+          this.particles[i].velocity.x,
+          this.particles[i].velocity.y,
+          this.particles[i].velocity.z
+        ); */
+      }
+      /* if (this.base.isOutOfBounds(this.particles[i].currPosition)) {
+        const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+        const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+        this.particles[i].setPosition(randX, 40, randZ);
+        const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+        this.particles[i].setVelocity(0, randv, 0);
+      } */
     }
+
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
   }
