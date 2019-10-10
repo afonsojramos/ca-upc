@@ -21,6 +21,8 @@ export default class Geometry {
     if (type === 'sphere') {
       return (radius, widthSegments = 32, heightSegments = 32) => {
         this.geo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+        this.geo.radius = radius;
+        this.geo.collRadius = radius;
       };
     }
 
