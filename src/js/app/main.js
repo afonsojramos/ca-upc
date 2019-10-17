@@ -38,6 +38,7 @@ export default class Main {
     };
 
     this.init();
+    // eslint-disable-next-line no-undef
     var gui = new dat.GUI();
 
     gui.add(this.params, 'sphereSize', 0.1, 2, 0.1);
@@ -126,21 +127,24 @@ export default class Main {
   }
 
   createEnvironment() {
-    /* this.base = new Geometry(this.scene);
-    this.base.make('plane')(100, 100, 10, 10);
-    this.base.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
+    const base = new Geometry(this.scene);
+    base.make('plane')(100, 100, 10, 10);
+    base.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
 
-    this.sphere = new Geometry(this.scene);
-    this.sphere.make('sphere')(10);
-    this.sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00); */
+    const sphere = new Geometry(this.scene);
+    sphere.make('sphere')(10);
+    sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
 
-    this.triangle = new Geometry(this.scene);
-    this.triangle.make('triangle')(
+    const triangle = new Geometry(this.scene);
+    triangle.make('triangle')(
       new THREE.Vector3(11, -2, 6),
       new THREE.Vector3(0, 15, -5),
       new THREE.Vector3(-11, -2, 6)
     );
-    this.triangle.place([0, 0, 0], [0, 0, 0], 1, 0xff0000);
+    triangle.place([0, 0, 0], [0, 0, 0], 1, 0xff0000);
+
+    this.geometries = [];
+    this.geometries.push(base, sphere, triangle);
   }
 
   particleFountain() {
@@ -150,7 +154,8 @@ export default class Main {
       const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
       const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-      this.particles[i].setVelocity(0, randv, 0);
+      const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+      this.particles[i].setVelocity(randv2, randv, 0);
       this.particles[i].setForce(0, -10, 0);
     }
   }
@@ -176,41 +181,28 @@ export default class Main {
     TWEEN.update();
     this.controls.threeControls.update();
 
-    if (this.sphere) {
-      this.sphere.mesh.scale.set(
-        this.params.sphereSize,
-        this.params.sphereSize,
-        this.params.sphereSize
-      );
-      this.sphere.geo.collRadius = this.sphere.geo.radius * this.params.sphereSize;
-    }
-
-    for (let i = 0; i < this.particles.length; i++) {
-      i == 0 && this.particles[i].updateParticle(delta, this.params.movement);
-      if (
-        (this.base && this.base.detectColision(this.particles[i])) ||
-        (this.triangle && i === 0 && this.triangle.detectColision(this.particles[i])) ||
-        (this.sphere && this.sphere.detectColision(this.particles[i]))
-      ) {
-        const randX = Math.floor(Math.random() * (10 + 10 + 1)) - 10;
-        const randZ = Math.floor(Math.random() * (10 + 10 + 1)) - 10;
-        this.particles[i].setPosition(randX, 40, randZ);
-        const randv = Math.random(this.clock.getDelta()) * (10 + 10 + 1) - 10;
-        this.particles[i].setVelocity(0, randv, 0);
-        /* this.particles[i].setVelocity(
-          this.particles[i].velocity.x,
-          this.particles[i].velocity.y,
-          this.particles[i].velocity.z
-        ); */
+    this.geometries.find(({ geo, mesh }) => {
+      if (geo.type === 'SphereGeometry') {
+        mesh.scale.set(this.params.sphereSize, this.params.sphereSize, this.params.sphereSize);
+        geo.collRadius = geo.radius * this.params.sphereSize;
+        return;
       }
-      /* if (this.base.isOutOfBounds(this.particles[i].currPosition)) {
+    });
+
+    this.particles.map(particle => {
+      particle.updateParticle(delta, this.params.movement);
+
+      this.geometries.map(geometry => {
+        geometry.collide(particle);
+      });
+    });
+    /* if (this.base.isOutOfBounds(this.particles[i].currPosition)) {
         const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
         const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
         this.particles[i].setPosition(randX, 40, randZ);
         const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
         this.particles[i].setVelocity(0, randv, 0);
       } */
-    }
 
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
