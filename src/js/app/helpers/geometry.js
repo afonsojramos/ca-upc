@@ -70,10 +70,9 @@ export default class Geometry {
     this.dconst = -dir.dot(point);
 
     // Align the geometry to the plane
-    const coplanarPoint = plane.coplanarPoint();
+    const coplanarPoint = plane.coplanarPoint(point);
     const focalPoint = new THREE.Vector3().copy(coplanarPoint).add(plane.normal);
     this.geo.lookAt(focalPoint);
-    this.geo.translate(coplanarPoint.x, coplanarPoint.y, coplanarPoint.z);
 
     // Create mesh with the geometry
     const planeMaterial = new THREE.MeshLambertMaterial({
@@ -84,53 +83,83 @@ export default class Geometry {
     this.scene.add(this.mesh);
   }
 
-  detectColision({ currPosition, prevPosition }) {
-    if (this.geo.type == 'PlaneGeometry') {
-      const dist = this.normal.clone().dot(currPosition) + this.dconst;
-      return dist < 0;
-    } else if (this.geo.type == 'SphereGeometry') {
-      var distance = Math.sqrt(
-        (currPosition.x - this.mesh.position.x) * (currPosition.x - this.mesh.position.x) +
-          (currPosition.y - this.mesh.position.y) * (currPosition.y - this.mesh.position.y) +
-          (currPosition.z - this.mesh.position.z) * (currPosition.z - this.mesh.position.z)
-      );
-      return distance < this.geo.collRadius;
-    } else if (this.geo.type == 'Geometry') {
-      const dist = this.normal.clone().dot(currPosition) + this.dconst;
-      const intersection = this.intersectWithPlane(currPosition, prevPosition);
+  collide(particle) {
+    const { currPosition, prevPosition, velocity, bouncing } = particle;
+    switch (this.geo.type) {
+      case 'PlaneGeometry': {
+        const dtPos = this.normal.clone().dot(currPosition) + this.dconst;
+        if (dtPos >= 0) break;
 
-      var A1 =
-        0.5 *
-        this.geo.vertices[1]
-          .clone()
-          .sub(intersection)
-          .cross(this.geo.vertices[2].clone().sub(intersection))
-          .length();
-      var A2 =
-        0.5 *
-        intersection
-          .clone()
-          .sub(this.geo.vertices[0])
-          .cross(this.geo.vertices[2].clone().sub(this.geo.vertices[0]))
-          .length();
-      var A3 =
-        0.5 *
-        this.geo.vertices[1]
-          .clone()
-          .sub(this.geo.vertices[0])
-          .cross(intersection.clone().sub(this.geo.vertices[0]))
-          .length();
-      var A4 =
-        0.5 *
-        this.geo.vertices[1]
-          .clone()
-          .sub(this.geo.vertices[0])
-          .cross(this.geo.vertices[2].clone().sub(this.geo.vertices[0]))
-          .length();
-      console.log(A1 + A2 + A3 - A4);
+        currPosition.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtPos));
 
-      return dist < 0 && A1 + A2 + A3 - A4 >= 0;
+        const dtVelocity = this.normal.clone().dot(velocity) + this.dconst;
+        velocity.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtVelocity));
+
+        particle.setPreviousPosition(this.getMirrorPoint(particle));
+        break;
+      }
+      case 'SphereGeometry': {
+        var distance = Math.sqrt(
+          (currPosition.x - this.mesh.position.x) * (currPosition.x - this.mesh.position.x) +
+            (currPosition.y - this.mesh.position.y) * (currPosition.y - this.mesh.position.y) +
+            (currPosition.z - this.mesh.position.z) * (currPosition.z - this.mesh.position.z)
+        );
+        if (distance < this.geo.collRadius) {
+          console.log('sphere colision');
+          particle.setPosition(new THREE.Vector3(0, 10, 0));
+          particle.setVelocity(new THREE.Vector3(0, 10, 0));
+        }
+        break;
+      }
+      case 'Geometry': {
+        const dist = this.normal.clone().dot(currPosition) + this.dconst;
+        const intersection = this.intersectWithPlane(currPosition, prevPosition);
+
+        var A1 =
+          0.5 *
+          this.geo.vertices[1]
+            .clone()
+            .sub(intersection)
+            .cross(this.geo.vertices[2].clone().sub(intersection))
+            .length();
+        var A2 =
+          0.5 *
+          intersection
+            .clone()
+            .sub(this.geo.vertices[0])
+            .cross(this.geo.vertices[2].clone().sub(this.geo.vertices[0]))
+            .length();
+        var A3 =
+          0.5 *
+          this.geo.vertices[1]
+            .clone()
+            .sub(this.geo.vertices[0])
+            .cross(intersection.clone().sub(this.geo.vertices[0]))
+            .length();
+        var A4 =
+          0.5 *
+          this.geo.vertices[1]
+            .clone()
+            .sub(this.geo.vertices[0])
+            .cross(this.geo.vertices[2].clone().sub(this.geo.vertices[0]))
+            .length();
+
+        if (dist < 0 && A1 + A2 + A3 - A4 >= 0) {
+          console.log('triangle colision');
+          particle.setPosition(new THREE.Vector3(0, 10, 0));
+          particle.setVelocity(new THREE.Vector3(0, 10, 0));
+        }
+
+        break;
+      }
+
+      default:
+        break;
     }
+  }
+
+  getMirrorPoint({ prevPosition }) {
+    return prevPosition - 2 * (this.normal.clone().dot(prevPosition) + this.dconst) * this.normal;
   }
 
   intersectWithSegment(currPosition, prevPosition) {

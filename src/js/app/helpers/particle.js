@@ -6,7 +6,7 @@ export default class Particle {
     this.prevPosition = new THREE.Vector3(0, 0, 0);
     this.velocity = new THREE.Vector3(0, 0, 0);
     this.force = new THREE.Vector3(0, 0, 0);
-    this.bouncing = 1;
+    this.bouncing = 0.8;
     this.lifetime = 50;
     this.fixed = false;
 
