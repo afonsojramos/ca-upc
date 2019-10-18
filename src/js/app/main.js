@@ -107,12 +107,7 @@ export default class Main {
       // All loaders done now
       this.manager.onLoad = () => {
         // Set up interaction manager with the app now that the model is finished loading
-        new Interaction(
-          this.renderer.threeRenderer,
-          this.scene,
-          this.camera.threeCamera,
-          this.controls.threeControls
-        );
+        new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
 
         // Add dat.GUI controls if dev
         if (Config.isDev) {
@@ -155,7 +150,7 @@ export default class Main {
       this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
       const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
       const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-      this.particles[i].setVelocity(randv2, randv, 0);
+      this.particles[i].setVelocity(randv, 5, randv2);
       this.particles[i].setForce(0, -10, 0);
     }
   }
@@ -195,14 +190,9 @@ export default class Main {
       this.geometries.map(geometry => {
         geometry.collide(particle);
       });
+
+      particle.render();
     });
-    /* if (this.base.isOutOfBounds(this.particles[i].currPosition)) {
-        const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-        const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-        this.particles[i].setPosition(randX, 40, randZ);
-        const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-        this.particles[i].setVelocity(0, randv, 0);
-      } */
 
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object

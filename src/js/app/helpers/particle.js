@@ -52,9 +52,10 @@ export default class Particle {
     this.fixed = fixed;
   }
 
-  updateParticle(delta, method /*"EulerOrig" "EulerSemi" "Verlet"*/) {
+  updateParticle(delta, method) {
     if (!this.fixed & (this.lifetime > 0)) {
       switch (method) {
+        // EulerOrig
         case (method = 0):
           {
             this.prevPosition = this.currPosition.clone();
@@ -62,19 +63,24 @@ export default class Particle {
             this.velocity.add(this.force.clone().multiplyScalar(delta));
           }
           break;
+        // EulerSemi
         case (method = 1):
           {
             // to be implemented
           }
           break;
+        // Verlet
         case (method = 2):
           {
             // to be implemented
           }
           break;
       }
-      this.particle.position.set(this.currPosition.x, this.currPosition.y, this.currPosition.z);
     }
     return;
+  }
+
+  render() {
+    this.particle.position.set(this.currPosition.x, this.currPosition.y, this.currPosition.z);
   }
 }
