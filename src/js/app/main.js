@@ -115,7 +115,7 @@ export default class Main {
     this.params = {
       SphereSize: 1,
       Movement: 0,
-      ParticleNumber: 2000,
+      ParticleNumber: 1,
       ParticleFreq: 25,
       Reset: false,
       Bomb: false
@@ -149,6 +149,7 @@ export default class Main {
     const base = new Geometry(this.scene);
     base.make('plane')(140, 140, 10, 10);
     base.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
+    base.draw();
 
     /* const base2 = new Geometry(this.scene);
     base2.make('plane')(140, 140, 10, 10);
@@ -157,17 +158,23 @@ export default class Main {
     const sphere = new Geometry(this.scene);
     sphere.make('sphere')(10);
     sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
+    sphere.draw();
 
     const triangle = new Geometry(this.scene);
     triangle.make('triangle')(
-      new THREE.Vector3(11, -2, 6),
+      new THREE.Vector3(11, 30, 6),
       new THREE.Vector3(0, 15, -5),
-      new THREE.Vector3(-11, -2, 6)
+      new THREE.Vector3(-11, 30, 6)
     );
-    triangle.place([0, 0, 0], [0, 0, 0], 1, 0xff0000);
+    triangle.makePlane(new THREE.Vector3(0, 0, 0), triangle.normal, [0, 0, 0], 0xff0000);
+    triangle.draw();
+
+    /* const base3 = new Geometry(this.scene);
+    base3.make('plane')(140, 140, 10, 10);
+    base3.makePlane(new THREE.Vector3(0, 0, 0), triangle.normal); */
 
     this.geometries = [];
-    this.geometries.push(base, sphere /* , triangle */);
+    this.geometries.push(base, triangle /* sphere, */ /* triangle */);
   }
 
   particleFountain(delta) {
@@ -184,10 +191,10 @@ export default class Main {
         if (this.aliveParticles < this.params.ParticleNumber && this.deltaSum > 1 / this.params.ParticleFreq) {
           const randX = Math.floor(Math.random() * (0.5 + 0.5 + 1)) - 0.5;
           const randZ = Math.floor(Math.random() * (0.5 + 0.5 + 1)) - 0.5;
-          particle.setPosition(randX, 40, randZ);
+          particle.setPosition(0, 40, 0);
           const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
           const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-          particle.setVelocity(randv, 20, randv2);
+          particle.setVelocity(0, 20, 3);
           particle.setForce(0, -10, 0);
           particle.setLifetime(50);
           particle.previousPosition = particle.currPosition
@@ -205,10 +212,10 @@ export default class Main {
       particle.setPosition(100, 100, 100);
       particle.setFixed();
       particle.setLifetime(0);
-
       particle.render();
     });
 
+    this.aliveParticles = 0;
     this.params.Reset = false;
     this.updateButtons();
   }
@@ -272,15 +279,22 @@ export default class Main {
       }
     });
 
-    this.particles.map(particle => {
-      particle.updateParticle(delta, this.params.Movement);
+    this.particles
+      .filter(particle => {
+        if (particle.lifetime > 0) {
+          return true;
+        }
+        return false;
+      })
+      .map(particle => {
+        particle.updateParticle(delta, this.params.Movement);
 
-      this.geometries.map(geometry => {
-        geometry.collide(particle);
+        this.geometries.map(geometry => {
+          geometry.collide(particle);
+        });
+
+        particle.render();
       });
-
-      particle.render();
-    });
 
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
