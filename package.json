@@ -4,6 +4,7 @@
   "description": "Computer Animation implementation for the development of the respective course.",
   "repository": "https://github.com/afonsojramos/ca-upc",
   "author": "Afonso Ramos",
+  "license": "MIT",
   "main": "app.js",
   "scripts": {
     "dev": "run-s dev:js webpack-server",
@@ -36,7 +37,7 @@
     "npm-run-all": "^4.1.5",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "postcss-loader": "^3.0.0",
-    "rimraf": "^2.6.3",
+    "rimraf": "^2.7.1",
     "sass-loader": "^7.3.1",
     "style-loader": "^0.23.1",
     "uglifyjs-webpack-plugin": "^2.2.0",

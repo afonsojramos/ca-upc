@@ -1,7 +1,12 @@
+# general npm giles
 node_modules
 *.log
 .DS_Store
 .idea
 Iconr
+
+# webpack generated files
 build
 *hot-update*
+public/css/*
+public/js/*
