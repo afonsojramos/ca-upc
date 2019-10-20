@@ -34,24 +34,20 @@ export default class Main {
 
     this.params = {
       SphereSize: 1,
-      Movement: 0
+      Movement: 0,
+      Reset: false
     };
 
     this.init();
     // eslint-disable-next-line no-undef
-    var gui = new dat.GUI();
-    var reset = {
-      Reset: function() {
-        console.log('clicked');
-      }
-    };
+    this.gui = new dat.GUI();
 
-    const settings = gui.addFolder('Settings');
+    const settings = this.gui.addFolder('Settings');
     settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
     settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
     settings.open();
-    const controls = gui.addFolder('Controls');
-    controls.add(reset, 'Reset');
+    const controls = this.gui.addFolder('Controls');
+    controls.add(this.params, 'Reset');
     controls.open();
 
     this.createEnvironment();
@@ -154,7 +150,7 @@ export default class Main {
 
   particleFountain() {
     this.particles = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
       this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
@@ -163,6 +159,26 @@ export default class Main {
       this.particles[i].setVelocity(randv, 5, randv2);
       this.particles[i].setForce(0, -10, 0);
     }
+  }
+
+  resetGuiParticles() {
+    this.particles.map(particle => {
+      const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+      const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
+      const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+      const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+      particle.setPosition(randX, 40, randZ);
+      particle.setVelocity(randv, 5, randv2);
+      particle.setForce(0, -10, 0);
+
+      particle.render();
+    });
+
+    Object.keys(this.gui.__folders).map(key => {
+      this.gui.__folders[key].__controllers.map(guiObject => {
+        guiObject.updateDisplay();
+      });
+    });
   }
 
   render() {
@@ -185,6 +201,10 @@ export default class Main {
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
+    if (this.params.Reset) {
+      this.params.Reset = false;
+      this.resetGuiParticles();
+    }
 
     this.geometries.find(({ geo, mesh }) => {
       if (geo.type === 'SphereGeometry') {
