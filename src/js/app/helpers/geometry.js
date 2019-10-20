@@ -38,6 +38,7 @@ export default class Geometry {
           .clone()
           .sub(point1)
           .cross(point3.clone().sub(point1))
+          .negate()
           .normalize();
         this.dconst = -this.normal.clone().dot(point1);
       };
@@ -85,71 +86,58 @@ export default class Geometry {
 
   collide(particle) {
     const { currPosition, prevPosition, velocity, bouncing } = particle;
+
     switch (this.geo.type) {
       case 'PlaneGeometry': {
-        const dtPos = this.normal.clone().dot(currPosition) + this.dconst;
-        if (dtPos >= 0) break;
+        const dist = this.normal.clone().dot(currPosition) + this.dconst;
+        if (dist >= 0) break;
 
-        currPosition.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtPos));
+        currPosition.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dist));
 
         const dtVelocity = this.normal.clone().dot(velocity) + this.dconst;
         velocity.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtVelocity));
 
         particle.setPreviousPosition(this.getMirrorPoint(particle));
+
+        this.isOutOfBounds(currPosition);
         break;
       }
+
       case 'SphereGeometry': {
-        var distance = Math.sqrt(
-          (currPosition.x - this.mesh.position.x) * (currPosition.x - this.mesh.position.x) +
-            (currPosition.y - this.mesh.position.y) * (currPosition.y - this.mesh.position.y) +
-            (currPosition.z - this.mesh.position.z) * (currPosition.z - this.mesh.position.z)
-        );
-        if (distance < this.geo.collRadius) {
-          console.log('sphere colision');
-          particle.setPosition(new THREE.Vector3(0, 10, 0));
-          particle.setVelocity(new THREE.Vector3(0, 10, 0));
+        if (currPosition.distanceTo(this.mesh.position) < this.geo.collRadius) {
+          const intersection = this.getSphereIntersectionPoint(currPosition, prevPosition);
+          this.dconst = -this.normal.clone().dot(intersection);
+
+          const dist = this.normal.clone().dot(currPosition) + this.dconst;
+          currPosition.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dist));
+
+          const dtVelocity = this.normal.clone().dot(velocity) + this.dconst;
+          velocity.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtVelocity));
+
+          particle.setPreviousPosition(this.getMirrorPoint(particle));
         }
         break;
       }
+
       case 'Geometry': {
         const dist = this.normal.clone().dot(currPosition) + this.dconst;
         const intersection = this.intersectWithPlane(currPosition, prevPosition);
 
-        var A1 =
-          0.5 *
-          this.geo.vertices[1]
-            .clone()
-            .sub(intersection)
-            .cross(this.geo.vertices[2].clone().sub(intersection))
-            .length();
-        var A2 =
-          0.5 *
-          intersection
-            .clone()
-            .sub(this.geo.vertices[0])
-            .cross(this.geo.vertices[2].clone().sub(this.geo.vertices[0]))
-            .length();
-        var A3 =
-          0.5 *
-          this.geo.vertices[1]
-            .clone()
-            .sub(this.geo.vertices[0])
-            .cross(intersection.clone().sub(this.geo.vertices[0]))
-            .length();
-        var A4 =
-          0.5 *
-          this.geo.vertices[1]
-            .clone()
-            .sub(this.geo.vertices[0])
-            .cross(this.geo.vertices[2].clone().sub(this.geo.vertices[0]))
-            .length();
+        const barycentricValue =
+          this.getBarycentricProduct(intersection, this.geo.vertices[1], this.geo.vertices[2]) +
+          this.getBarycentricProduct(this.geo.vertices[0], intersection, this.geo.vertices[2]) +
+          this.getBarycentricProduct(this.geo.vertices[0], this.geo.vertices[1], intersection) -
+          this.getBarycentricProduct(this.geo.vertices[0], this.geo.vertices[1], this.geo.vertices[2]);
 
-        if (dist < 0 && A1 + A2 + A3 - A4 >= 0) {
-          console.log('triangle colision');
-          particle.setPosition(new THREE.Vector3(0, 10, 0));
-          particle.setVelocity(new THREE.Vector3(0, 10, 0));
+        if (barycentricValue < 0) {
+          console.log('triangle coll');
+          currPosition.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dist));
+
+          const dtVelocity = this.normal.clone().dot(velocity) + this.dconst;
+          velocity.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtVelocity));
+
+          particle.setPreviousPosition(this.getMirrorPoint(particle));
         }
-
         break;
       }
 
@@ -162,19 +150,39 @@ export default class Geometry {
     return prevPosition - 2 * (this.normal.clone().dot(prevPosition) + this.dconst) * this.normal;
   }
 
-  intersectWithSegment(currPosition, prevPosition) {
-    const diffPlanePoint = new THREE.Vector3();
-    diffPlanePoint.subVectors(prevPosition, this.geo.vertices[0]);
+  getSphereIntersectionPoint(currentPosition, prevPosition) {
+    const vectorDelta = currentPosition.clone().sub(prevPosition);
+    const a = vectorDelta.clone().dot(vectorDelta);
+    const b = 2 * vectorDelta.clone().dot(prevPosition.clone().sub(this.mesh.position));
+    const c =
+      this.mesh.position.clone().dot(this.mesh.position) +
+      prevPosition.clone().dot(prevPosition) -
+      2 * prevPosition.clone().dot(this.mesh.position) -
+      this.geo.collRadius * this.geo.collRadius;
 
-    const segment = new THREE.Vector3();
-    segment.subVectors(currPosition, prevPosition);
+    //u is an alpha from the course slides
+    const exp = b * b - 4 * a * c;
+    const u1 = ((-b + Math.sqrt(exp)) / 2) * a;
+    const u2 = ((-b - Math.sqrt(exp)) / 2) * a;
+    var u;
 
-    const a1 = -diffPlanePoint.dot(this.normal) / segment.dot(this.normal);
+    if (u1 >= 0 && u1 <= 1 && u2 >= 0 && u2 <= 1) {
+      u = Math.min(u1, u2);
+    } else if (u1 >= 0 && u1 <= 1) {
+      u = u1;
+    } else if (u2 >= 0 && u2 <= 1) {
+      u = u2;
+    } else {
+      console.log("Segment doesn't intersect the sphere! Check the collision detection code!");
+    }
 
-    const sum1 = new THREE.Vector3();
-    sum1.addVectors(diffPlanePoint, this.geo.vertices[0]);
-    segment.multiplyScalar(a1);
-    return sum1.add(segment);
+    const intersection = prevPosition.clone().add(vectorDelta.multiplyScalar(u));
+    this.normal = intersection
+      .clone()
+      .subVectors(intersection, this.mesh.position)
+      .normalize();
+
+    return intersection;
   }
 
   intersectWithPlane(currPosition, prevPosition) {
@@ -190,6 +198,32 @@ export default class Geometry {
     sum1.addVectors(diffPlanePoint, this.geo.vertices[0]);
     segment.multiplyScalar(a1);
     return sum1.add(segment);
+  }
+
+  distPoint2Plane(point) {
+    return point.clone().dot(this.normal) + this.dconst;
+  }
+
+  intersecSegment(point1, point2) {
+    if (this.distPoint2Plane(point1) * this.distPoint2Plane(point2) > 0) return false;
+    const r =
+      (-this.dconst - point1.clone().dot(this.normal)) /
+      point2
+        .clone()
+        .sub(point1)
+        .dot(this.normal);
+    const intersectionPoint = (1 - r) * point1 + r * point2;
+    return intersectionPoint;
+  }
+
+  getBarycentricProduct(v1, v2, v3) {
+    const barycentricProduct =
+      v2
+        .clone()
+        .sub(v1)
+        .cross(v3.clone().sub(v1))
+        .length() / 2;
+    return barycentricProduct;
   }
 
   isOutOfBounds(point) {
