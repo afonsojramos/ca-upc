@@ -53,28 +53,32 @@ export default class Particle {
   }
 
   updateParticle(delta, method) {
-    if (!this.fixed & (this.lifetime > 0)) {
-      switch (method) {
-        // EulerOrig
-        case (method = 0):
-          {
-            this.prevPosition = this.currPosition.clone();
-            this.currPosition.add(this.velocity.clone().multiplyScalar(delta));
-            this.velocity.add(this.force.clone().multiplyScalar(delta));
-          }
-          break;
-        // EulerSemi
-        case (method = 1):
-          {
-            // to be implemented
-          }
-          break;
-        // Verlet
-        case (method = 2):
-          {
-            // to be implemented
-          }
-          break;
+    if (!this.fixed && this.lifetime > 0) {
+      // EulerOrig
+      if (method == 0) {
+        this.prevPosition = this.currPosition.clone();
+        this.currPosition.add(this.velocity.clone().multiplyScalar(delta));
+        this.velocity.add(this.force.clone().multiplyScalar(delta));
+      }
+      // EulerSemi
+      else if (method == 1) {
+        this.prevPosition = this.currPosition.clone();
+        this.velocity.add(this.force.clone().multiplyScalar(delta));
+        this.currPosition.add(this.velocity.clone().multiplyScalar(delta));
+      }
+      // Verlet
+      else if (method == 2) {
+        const pos = this.currPosition.clone();
+        this.currPosition = this.currPosition
+          .clone()
+          .multiplyScalar(2)
+          .sub(this.prevPosition)
+          .add(this.force.clone().multiplyScalar(delta));
+        this.prevPosition = pos;
+        this.velocity = this.currPosition
+          .clone()
+          .sub(this.prevPosition)
+          .divideScalar(delta);
       }
     }
     return;
