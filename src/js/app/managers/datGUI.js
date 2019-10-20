@@ -278,9 +278,7 @@ export default class DatGUI {
       .onChange(value => {
         this.light.pointLight.color.setHex(value);
       });
-    const pointLightIntensityGui = pointLightFolder
-      .add(Config.pointLight, 'intensity', 0, 2)
-      .name('Intensity');
+    const pointLightIntensityGui = pointLightFolder.add(Config.pointLight, 'intensity', 0, 2).name('Intensity');
     pointLightIntensityGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -289,9 +287,7 @@ export default class DatGUI {
     pointLightIntensityGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const pointLightDistanceGui = pointLightFolder
-      .add(Config.pointLight, 'distance', 0, 1000)
-      .name('Distance');
+    const pointLightDistanceGui = pointLightFolder.add(Config.pointLight, 'distance', 0, 1000).name('Distance');
     pointLightDistanceGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -300,9 +296,7 @@ export default class DatGUI {
     pointLightDistanceGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const pointLightPositionXGui = pointLightFolder
-      .add(Config.pointLight, 'x', -1000, 1000)
-      .name('Position X');
+    const pointLightPositionXGui = pointLightFolder.add(Config.pointLight, 'x', -1000, 1000).name('Position X');
     pointLightPositionXGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -311,9 +305,7 @@ export default class DatGUI {
     pointLightPositionXGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const pointLightPositionYGui = pointLightFolder
-      .add(Config.pointLight, 'y', -1000, 1000)
-      .name('Position Y');
+    const pointLightPositionYGui = pointLightFolder.add(Config.pointLight, 'y', -1000, 1000).name('Position Y');
     pointLightPositionYGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -322,9 +314,7 @@ export default class DatGUI {
     pointLightPositionYGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const pointLightPositionZGui = pointLightFolder
-      .add(Config.pointLight, 'z', -1000, 1000)
-      .name('Position Z');
+    const pointLightPositionZGui = pointLightFolder.add(Config.pointLight, 'z', -1000, 1000).name('Position Z');
     pointLightPositionZGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -354,9 +344,7 @@ export default class DatGUI {
       .onChange(value => {
         this.light.hemiLight.groundColor.setHex(value);
       });
-    const hemiLightIntensityGui = hemiLightFolder
-      .add(Config.hemiLight, 'intensity', 0, 2)
-      .name('Intensity');
+    const hemiLightIntensityGui = hemiLightFolder.add(Config.hemiLight, 'intensity', 0, 2).name('Intensity');
     hemiLightIntensityGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -365,9 +353,7 @@ export default class DatGUI {
     hemiLightIntensityGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const hemiLightPositionXGui = hemiLightFolder
-      .add(Config.hemiLight, 'x', -1000, 1000)
-      .name('Position X');
+    const hemiLightPositionXGui = hemiLightFolder.add(Config.hemiLight, 'x', -1000, 1000).name('Position X');
     hemiLightPositionXGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -376,9 +362,7 @@ export default class DatGUI {
     hemiLightPositionXGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const hemiLightPositionYGui = hemiLightFolder
-      .add(Config.hemiLight, 'y', -500, 1000)
-      .name('Position Y');
+    const hemiLightPositionYGui = hemiLightFolder.add(Config.hemiLight, 'y', -500, 1000).name('Position Y');
     hemiLightPositionYGui.onChange(value => {
       this.controls.enableRotate = false;
 
@@ -387,9 +371,7 @@ export default class DatGUI {
     hemiLightPositionYGui.onFinishChange(() => {
       this.controls.enableRotate = true;
     });
-    const hemiLightPositionZGui = hemiLightFolder
-      .add(Config.hemiLight, 'z', -1000, 1000)
-      .name('Position Z');
+    const hemiLightPositionZGui = hemiLightFolder.add(Config.hemiLight, 'z', -1000, 1000).name('Position Z');
     hemiLightPositionZGui.onChange(value => {
       this.controls.enableRotate = false;
 
