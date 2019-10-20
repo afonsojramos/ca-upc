@@ -32,33 +32,17 @@ export default class Main {
     // Set container property to container element
     this.container = container;
 
-    this.params = {
-      SphereSize: 1,
-      Movement: 0,
-      Reset: false
-    };
+    this.initEngine();
 
     this.init();
-    // eslint-disable-next-line no-undef
-    this.gui = new dat.GUI();
-
-    const settings = this.gui.addFolder('Settings');
-    settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
-    settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
-    settings.open();
-    const controls = this.gui.addFolder('Controls');
-    controls.add(this.params, 'Reset');
-    controls.open();
 
     this.createEnvironment();
-
-    this.particleFountain();
 
     // Start render which does not wait for model fully loaded
     this.render();
   }
 
-  init() {
+  initEngine() {
     // Start Three clock
     this.clock = new THREE.Clock();
 
@@ -127,10 +111,48 @@ export default class Main {
     });
   }
 
+  init() {
+    this.params = {
+      SphereSize: 1,
+      Movement: 0,
+      ParticleNumber: 2000,
+      ParticleFreq: 25,
+      Reset: false,
+      Bomb: false
+    };
+
+    const maxParticles = 5000;
+    // eslint-disable-next-line no-undef
+    this.gui = new dat.GUI();
+
+    const settings = this.gui.addFolder('Settings');
+    settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
+    settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
+    settings.add(this.params, 'ParticleNumber', 100, maxParticles, 100);
+    settings.add(this.params, 'ParticleFreq', 1, 100, 2);
+    settings.open();
+    const controls = this.gui.addFolder('Controls');
+    controls.add(this.params, 'Bomb');
+    controls.add(this.params, 'Reset');
+    controls.open();
+
+    this.deltaSum = 0;
+    this.particleFreq = 0.001;
+    this.particles = [];
+    this.aliveParticles = 0;
+    for (let nParticle = 0; nParticle < maxParticles; nParticle++) {
+      this.particles[nParticle] = new Particle(0, 100, 0, 1, this.scene);
+    }
+  }
+
   createEnvironment() {
     const base = new Geometry(this.scene);
-    base.make('plane')(100, 100, 10, 10);
+    base.make('plane')(140, 140, 10, 10);
     base.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
+
+    /* const base2 = new Geometry(this.scene);
+    base2.make('plane')(140, 140, 10, 10);
+    base2.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0)); */
 
     const sphere = new Geometry(this.scene);
     sphere.make('sphere')(10);
@@ -145,35 +167,71 @@ export default class Main {
     triangle.place([0, 0, 0], [0, 0, 0], 1, 0xff0000);
 
     this.geometries = [];
-    this.geometries.push(base, sphere, triangle);
+    this.geometries.push(base, sphere /* , triangle */);
   }
 
-  particleFountain() {
-    this.particles = [];
-    for (let i = 0; i < 1000; i++) {
-      const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-      const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-      this.particles[i] = new Particle(randX, 40, randZ, 1, this.scene);
-      const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-      const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-      this.particles[i].setVelocity(randv, 5, randv2);
-      this.particles[i].setForce(0, -10, 0);
-    }
+  particleFountain(delta) {
+    this.deltaSum += delta;
+
+    this.particles
+      .filter(particle => {
+        if (particle.lifetime > 0) {
+          return false;
+        }
+        return true;
+      })
+      .map(particle => {
+        if (this.aliveParticles < this.params.ParticleNumber && this.deltaSum > 1 / this.params.ParticleFreq) {
+          const randX = Math.floor(Math.random() * (0.5 + 0.5 + 1)) - 0.5;
+          const randZ = Math.floor(Math.random() * (0.5 + 0.5 + 1)) - 0.5;
+          particle.setPosition(randX, 40, randZ);
+          const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+          const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+          particle.setVelocity(randv, 20, randv2);
+          particle.setForce(0, -10, 0);
+          particle.setLifetime(50);
+          particle.previousPosition = particle.currPosition
+            .clone()
+            .sub(particle.velocity.clone().multiplyScalar(delta));
+
+          this.aliveParticles++;
+          this.deltaSum = 0;
+        } else return;
+      });
   }
 
   resetGuiParticles() {
     this.particles.map(particle => {
-      const randX = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-      const randZ = Math.floor(Math.random() * (7 + 7 + 1)) - 7;
-      const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-      const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-      particle.setPosition(randX, 40, randZ);
-      particle.setVelocity(randv, 5, randv2);
-      particle.setForce(0, -10, 0);
+      particle.setPosition(100, 100, 100);
+      particle.setFixed();
+      particle.setLifetime(0);
 
       particle.render();
     });
 
+    this.params.Reset = false;
+    this.updateButtons();
+  }
+
+  bomb(delta) {
+    this.particles.map(particle => {
+      const randX = Math.floor(Math.random() * (10 + 10 + 1)) - 10;
+      const randY = Math.floor(Math.random() * (40 + 30 + 1)) - 30;
+      const randZ = Math.floor(Math.random() * (4 + 4 + 1)) - 4;
+      particle.setPosition(randX, randY, randZ);
+      const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+      const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
+      particle.setVelocity(randv, 20, randv2);
+      particle.setForce(0, -10, 0);
+      particle.setLifetime(50);
+      particle.previousPosition = particle.currPosition.clone().sub(particle.velocity.clone().multiplyScalar(delta));
+    });
+
+    this.params.Bomb = false;
+    this.updateButtons();
+  }
+
+  updateButtons() {
     Object.keys(this.gui.__folders).map(key => {
       this.gui.__folders[key].__controllers.map(guiObject => {
         guiObject.updateDisplay();
@@ -201,10 +259,10 @@ export default class Main {
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
-    if (this.params.Reset) {
-      this.params.Reset = false;
-      this.resetGuiParticles();
-    }
+    if (this.params.Reset) this.resetGuiParticles(delta);
+    if (this.params.Bomb) this.bomb(delta);
+
+    this.particleFountain(delta);
 
     this.geometries.find(({ geo, mesh }) => {
       if (geo.type === 'SphereGeometry') {
