@@ -1,25 +1,25 @@
 // Global imports
-const webpack = require('webpack');
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+import { DefinePlugin } from 'webpack';
+import { join, resolve as _resolve } from 'path';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import MiniCssExtractPlugin, { loader as _loader } from 'mini-css-extract-plugin';
+import UglifyJsPlugin from 'uglifyjs-webpack-plugin';
+import OptimizeCSSAssetsPlugin from 'optimize-css-assets-webpack-plugin';
 
 // Paths
 const entry = './src/js/app.js';
-const includePath = path.join(__dirname, 'src/js');
-const nodeModulesPath = path.join(__dirname, 'node_modules');
+const includePath = join(__dirname, 'src/js');
+const nodeModulesPath = join(__dirname, 'node_modules');
 
-let outputPath = path.join(__dirname, 'src/public/js');
+let outputPath = join(__dirname, 'src/public/js');
 
-module.exports = env => {
+export default env => {
   // Dev environment
   let devtool = 'eval';
   let mode = 'development';
   let stats = 'minimal';
   let plugins = [
-    new webpack.DefinePlugin({
+    new DefinePlugin({
       __ENV__: JSON.stringify(env.NODE_ENV)
     })
   ];
@@ -41,9 +41,7 @@ module.exports = env => {
   return {
     // Here the application starts executing
     // and webpack starts bundling
-    entry: [
-      entry
-    ],
+    entry: [entry],
 
     // options related to how webpack emits results
     output: {
@@ -76,16 +74,16 @@ module.exports = env => {
           // -loader suffix is no longer optional in webpack2 for clarity reasons
           // see webpack 1 upgrade guide
           use: {
-            loader: 'babel-loader',
+            loader: 'babel-loader'
           },
           include: includePath,
-          exclude: nodeModulesPath,
+          exclude: nodeModulesPath
         },
         {
           test: /\.(s*)css$/,
           use: [
             {
-              loader: MiniCssExtractPlugin.loader,
+              loader: _loader,
               options: {
                 // you can specify a publicPath here
                 // by default it use publicPath in webpackOptions.output
@@ -94,8 +92,8 @@ module.exports = env => {
             },
             'css-loader',
             'postcss-loader',
-            'sass-loader',
-          ],
+            'sass-loader'
+          ]
         }
       ]
     },
@@ -104,13 +102,10 @@ module.exports = env => {
     // (does not apply to resolving to loaders)
     resolve: {
       // directories where to look for modules,
-      modules: [
-        'node_modules',
-        path.resolve(__dirname, 'src')
-      ],
+      modules: ['node_modules', _resolve(__dirname, 'src')],
 
       // extensions that are used
-      extensions: ['.js', '.json'],
+      extensions: ['.js', '.json']
     },
 
     performance: {
@@ -130,10 +125,10 @@ module.exports = env => {
 
     plugins: plugins.concat(
       new HtmlWebpackPlugin({
-        title: 'Three.js Webpack ES6 Boilerplate',
-        template: path.join(__dirname, 'src/html/index.html'),
+        title: 'Computer Animation',
+        template: join(__dirname, 'src/html/index.html'),
         filename: '../index.html',
-        env: env.NODE_ENV,
+        env: env.NODE_ENV
       }),
       new MiniCssExtractPlugin({
         filename: '../css/[name].css',
