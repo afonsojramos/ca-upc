@@ -33,16 +33,26 @@ export default class Main {
     this.container = container;
 
     this.params = {
-      sphereSize: 1,
-      movement: 0
+      SphereSize: 1,
+      Movement: 0
     };
 
     this.init();
     // eslint-disable-next-line no-undef
     var gui = new dat.GUI();
+    var reset = {
+      Reset: function() {
+        console.log('clicked');
+      }
+    };
 
-    gui.add(this.params, 'sphereSize', 0.1, 2, 0.1);
-    gui.add(this.params, 'movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
+    const settings = gui.addFolder('Settings');
+    settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
+    settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
+    settings.open();
+    const controls = gui.addFolder('Controls');
+    controls.add(reset, 'Reset');
+    controls.open();
 
     this.createEnvironment();
 
@@ -178,14 +188,14 @@ export default class Main {
 
     this.geometries.find(({ geo, mesh }) => {
       if (geo.type === 'SphereGeometry') {
-        mesh.scale.set(this.params.sphereSize, this.params.sphereSize, this.params.sphereSize);
-        geo.collRadius = geo.radius * this.params.sphereSize;
+        mesh.scale.set(this.params.SphereSize, this.params.SphereSize, this.params.SphereSize);
+        geo.collRadius = geo.radius * this.params.SphereSize;
         return;
       }
     });
 
     this.particles.map(particle => {
-      particle.updateParticle(delta, this.params.movement);
+      particle.updateParticle(delta, this.params.Movement);
 
       this.geometries.map(geometry => {
         geometry.collide(particle);

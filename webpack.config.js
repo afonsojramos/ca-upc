@@ -1,25 +1,26 @@
+/* eslint-disable no-undef */
 // Global imports
-import { DefinePlugin } from 'webpack';
-import { join, resolve as _resolve } from 'path';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import MiniCssExtractPlugin, { loader as _loader } from 'mini-css-extract-plugin';
-import UglifyJsPlugin from 'uglifyjs-webpack-plugin';
-import OptimizeCSSAssetsPlugin from 'optimize-css-assets-webpack-plugin';
+const webpack = require('webpack');
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 // Paths
 const entry = './src/js/app.js';
-const includePath = join(__dirname, 'src/js');
-const nodeModulesPath = join(__dirname, 'node_modules');
+const includePath = path.join(__dirname, 'src/js');
+const nodeModulesPath = path.join(__dirname, 'node_modules');
 
-let outputPath = join(__dirname, 'src/public/js');
+let outputPath = path.join(__dirname, 'src/public/js');
 
-export default env => {
+module.exports = env => {
   // Dev environment
   let devtool = 'eval';
   let mode = 'development';
   let stats = 'minimal';
-  let plugins = [
-    new DefinePlugin({
+  const plugins = [
+    new webpack.DefinePlugin({
       __ENV__: JSON.stringify(env.NODE_ENV)
     })
   ];
@@ -83,7 +84,7 @@ export default env => {
           test: /\.(s*)css$/,
           use: [
             {
-              loader: _loader,
+              loader: MiniCssExtractPlugin.loader,
               options: {
                 // you can specify a publicPath here
                 // by default it use publicPath in webpackOptions.output
@@ -102,14 +103,16 @@ export default env => {
     // (does not apply to resolving to loaders)
     resolve: {
       // directories where to look for modules,
-      modules: ['node_modules', _resolve(__dirname, 'src')],
+      modules: ['node_modules', path.resolve(__dirname, 'src')],
 
       // extensions that are used
       extensions: ['.js', '.json']
     },
 
     performance: {
-      hints: 'warning'
+      hints: 'warning',
+      maxEntrypointSize: 2512000,
+      maxAssetSize: 2512000
     },
 
     // lets you precisely control what bundle information gets displayed
@@ -126,7 +129,7 @@ export default env => {
     plugins: plugins.concat(
       new HtmlWebpackPlugin({
         title: 'Computer Animation',
-        template: join(__dirname, 'src/html/index.html'),
+        template: path.join(__dirname, 'src/html/index.html'),
         filename: '../index.html',
         env: env.NODE_ENV
       }),
@@ -149,7 +152,7 @@ export default env => {
       splitChunks: {
         cacheGroups: {
           vendor: {
-            test: /[\\\/]node_modules[\\\/]/,
+            test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all'
           },
