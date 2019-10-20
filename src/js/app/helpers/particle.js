@@ -7,7 +7,7 @@ export default class Particle {
     this.velocity = new THREE.Vector3(0, 0, 0);
     this.force = new THREE.Vector3(0, 0, 0);
     this.bouncing = 0.8;
-    this.lifetime = 50;
+    this.lifetime = 0;
     this.fixed = false;
 
     const geometry = new THREE.BoxGeometry(size, size, size);
@@ -73,12 +73,12 @@ export default class Particle {
           .clone()
           .multiplyScalar(2)
           .sub(this.prevPosition)
-          .add(this.force.clone().multiplyScalar(delta));
-        this.prevPosition = pos;
+          .add(this.force.clone().multiplyScalar(delta * delta));
         this.velocity = this.currPosition
           .clone()
           .sub(this.prevPosition)
           .divideScalar(delta);
+        this.prevPosition = pos;
       }
     }
     return;
