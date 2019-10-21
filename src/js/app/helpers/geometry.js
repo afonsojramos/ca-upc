@@ -121,6 +121,7 @@ export default class Geometry {
       const intersection = this.intersecSegment(currPosition, prevPosition);
 
       if (intersection) {
+        // three.js has barycentric product funcion built-in, but opted to do it from scratch
         const barycentricValue =
           this.getBarycentricProduct(intersection, this.geo.vertices[1], this.geo.vertices[2]) +
           this.getBarycentricProduct(this.geo.vertices[0], intersection, this.geo.vertices[2]) +
@@ -169,6 +170,7 @@ export default class Geometry {
     }
 
     const intersection = prevPosition.clone().add(vectorDelta.multiplyScalar(alpha));
+    // normal at intersection point
     this.normal = intersection
       .clone()
       .subVectors(intersection, this.mesh.position)
@@ -188,7 +190,6 @@ export default class Geometry {
       .clone()
       .multiplyScalar(1 - r)
       .add(prevPosition.clone().multiplyScalar(r));
-    console.log(r, intersectionPoint);
 
     return intersectionPoint;
   }
