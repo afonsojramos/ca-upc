@@ -148,33 +148,22 @@ export default class Main {
   createEnvironment() {
     const base = new Geometry(this.scene);
     base.make('plane')(140, 140, 10, 10);
-    base.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
-    base.draw();
-
-    /* const base2 = new Geometry(this.scene);
-    base2.make('plane')(140, 140, 10, 10);
-    base2.makePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0)); */
+    base.placePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
 
     const sphere = new Geometry(this.scene);
     sphere.make('sphere')(10);
-    sphere.place([0, -2, -6.5], [Math.PI / 2, 0, 0], 0.8, 0x00ff00);
-    sphere.draw();
+    sphere.placeSphere([0, -2, -6.5]);
 
     const triangle = new Geometry(this.scene);
     triangle.make('triangle')(
-      new THREE.Vector3(11, 30, 6),
+      new THREE.Vector3(11, 30, 20),
       new THREE.Vector3(0, 15, -5),
-      new THREE.Vector3(-11, 30, 6)
+      new THREE.Vector3(-11, 30, 20)
     );
-    triangle.makePlane(new THREE.Vector3(0, 0, 0), triangle.normal, [0, 0, 0], 0xff0000);
-    triangle.draw();
-
-    /* const base3 = new Geometry(this.scene);
-    base3.make('plane')(140, 140, 10, 10);
-    base3.makePlane(new THREE.Vector3(0, 0, 0), triangle.normal); */
+    triangle.placeTriangle();
 
     this.geometries = [];
-    this.geometries.push(base, triangle /* sphere, */ /* triangle */);
+    this.geometries.push(base, sphere, triangle);
   }
 
   particleFountain(delta) {

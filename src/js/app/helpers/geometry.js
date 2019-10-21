@@ -29,40 +29,57 @@ export default class Geometry {
     if (type === 'triangle') {
       return (point1, point2, point3) => {
         this.geo = new THREE.Geometry();
-        this.geo.vertices.push(point1);
-        this.geo.vertices.push(point2);
-        this.geo.vertices.push(point3);
-        this.geo.faces.push(new THREE.Face3(0, 1, 2));
-        this.geo.faces.push(new THREE.Face3(2, 1, 0));
-        this.normal = point2
-          .clone()
-          .sub(point1)
-          .cross(point3.clone().sub(point1))
-          .negate()
-          .normalize();
+        this.triangle = new THREE.Triangle(point1, point2, point3);
+        this.geo.vertices.push(this.triangle.a);
+        this.geo.vertices.push(this.triangle.b);
+        this.geo.vertices.push(this.triangle.c);
+
+        // Calculate triangle characteristics
+        this.normal = new THREE.Vector3();
+        this.triangle.getNormal(this.normal);
+        this.geo.faces.push(new THREE.Face3(0, 1, 2, this.normal));
+        this.geo.computeFaceNormals();
         this.dconst = -this.normal.clone().dot(point1);
       };
     }
   }
 
-  place(position, rotation, opacity, color = 0xeeeeee) {
-    const material = new Material(color).standard;
-    if (opacity) {
-      material.opacity = opacity;
-      material.transparent = true;
-    }
+  placeSphere(position, rotation) {
+    // Create mesh with the geometry
+    const material = new Material(0x00ff00).standard;
+    material.opacity = 0.8;
+    material.transparent = true;
     this.mesh = new THREE.Mesh(this.geo, material);
 
+    // Positions Sphere
     this.mesh.position.set(...position);
-    this.mesh.rotation.set(...rotation);
+    if (rotation) this.mesh.rotation.set(...rotation);
 
     if (Config.shadow.enabled) {
       this.mesh.receiveShadow = true;
     }
+
+    // Add mesh to scene
     this.scene.add(this.mesh);
   }
 
-  makePlane(point, dir) {
+  placeTriangle() {
+    // Create mesh with the geometry
+    const material = new THREE.MeshLambertMaterial({
+      color: 0xffeeee,
+      side: THREE.DoubleSide
+    });
+    this.mesh = new THREE.Mesh(this.geo, material);
+
+    // Load the Triangle Plane
+    this.plane = new THREE.Plane();
+    this.triangle.getPlane(this.plane);
+
+    // Add mesh to scene
+    this.scene.add(this.mesh);
+  }
+
+  placePlane(point, dir) {
     // Create plane
     this.position = point;
     const plane = new THREE.Plane();
@@ -81,6 +98,8 @@ export default class Geometry {
       side: THREE.DoubleSide
     });
     this.mesh = new THREE.Mesh(this.geo, planeMaterial);
+
+    // Add mesh to scene
     this.scene.add(this.mesh);
   }
 
