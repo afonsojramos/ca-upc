@@ -2,6 +2,8 @@
 
 This project was made during the [Computer Animation](https://www.fib.upc.edu/en/studies/masters/master-innovation-and-research-informatics/curriculum/syllabus/CA-MIRI) course of the [Master in Innovation and Research in Informatics](https://www.fib.upc.edu/en/studies/masters/master-innovation-and-research-informatics/) at the [Faculty of Informatics of Barcelona](https://www.fib.upc.edu) of the [Polytechnic University of Catalunya](https://www.upc.edu/en).
 
+Fully implemented from the ground up in [three.js](https://threejs.org).
+
 ## Project Structure
 
 ```
