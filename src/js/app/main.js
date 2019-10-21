@@ -278,7 +278,7 @@ export default class Main {
         particle.updateParticle(delta, this.params.Movement);
 
         this.geometries.map(geometry => {
-          geometry.collide(particle);
+          geometry.checkCollision(particle);
         });
 
         particle.render();
