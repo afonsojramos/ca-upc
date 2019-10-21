@@ -178,12 +178,11 @@ export default class Main {
       })
       .map(particle => {
         if (this.aliveParticles < this.params.ParticleNumber && this.deltaSum > 1 / this.params.ParticleFreq) {
-          const randX = Math.floor(Math.random() * (0.5 + 0.5 + 1)) - 0.5;
-          const randZ = Math.floor(Math.random() * (0.5 + 0.5 + 1)) - 0.5;
-          particle.setPosition(0, 40, 0);
-          const randv = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-          const randv2 = Math.random(this.clock.getDelta()) * (5 + 5 + 1) - 5;
-          particle.setVelocity(0, 20, 3);
+          const randX = Math.random() * (0.3 + 0.3 + 1) - 0.3;
+          const randZ = Math.random() * (0.3 + 0.3 + 1) - 0.3;
+          const randv = Math.random() * (4 + 4 + 1) - 4;
+          particle.setPosition(randX, 40, randZ);
+          particle.setVelocity(randX, 20, randv);
           particle.setForce(0, -10, 0);
           particle.setLifetime(50);
           particle.previousPosition = particle.currPosition
