@@ -1,6 +1,6 @@
 # Computer Animation
 
-This Computer Animation course was implemented with the help of the [Three.js Webpack ES6 Boilerplate](https://github.com/paulmg/ThreeJS-Webpack-ES6-Boilerplate/)
+This project was made during the [Computer Animation](https://www.fib.upc.edu/en/studies/masters/master-innovation-and-research-informatics/curriculum/syllabus/CA-MIRI) course of the [Master in Innovation and Research in Informatics](https://www.fib.upc.edu/en/studies/masters/master-innovation-and-research-informatics/) at the [Faculty of Informatics of Barcelona](https://www.fib.upc.edu) of the [Polytechnic University of Catalunya](https://www.upc.edu/en).
 
 ## Project Structure
 
@@ -63,3 +63,5 @@ You can run any of these individually if you'd like with the `npm run` command:
 - Arrow controls will pan
 - Mouse left click will rotate/right click will pan
 - Scroll wheel zooms in and out
+
+Implemented with the help of the [Three.js Webpack ES6 Boilerplate](https://github.com/paulmg/ThreeJS-Webpack-ES6-Boilerplate/).
