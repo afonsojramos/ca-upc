@@ -13,6 +13,7 @@ import Controls from './components/controls';
 import Geometry from './helpers/geometry';
 import Stats from './helpers/stats';
 import Particle from './helpers/particle';
+import GUIHelper from './helpers/guiHelper';
 
 // Model
 import Texture from './model/texture';
@@ -49,6 +50,11 @@ export default class Main {
     // Main scene creation
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(Config.fog.color, Config.fog.near);
+
+    // GUI
+    // eslint-disable-next-line no-undef
+    this.gui = new dat.GUI();
+    this.guiHelper = new GUIHelper(this.gui);
 
     // Get Device Pixel Ratio first for retina
     if (window.devicePixelRatio) {
@@ -115,15 +121,13 @@ export default class Main {
     this.params = {
       SphereSize: 1,
       Movement: 0,
-      ParticleNumber: 1,
+      ParticleNumber: 100,
       ParticleFreq: 25,
       Reset: false,
       Bomb: false
     };
 
     const maxParticles = 5000;
-    // eslint-disable-next-line no-undef
-    this.gui = new dat.GUI();
 
     const settings = this.gui.addFolder('Settings');
     settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
@@ -205,7 +209,7 @@ export default class Main {
 
     this.aliveParticles = 0;
     this.params.Reset = false;
-    this.updateButtons();
+    this.guiHelper.updateButtons();
   }
 
   bomb(delta) {
@@ -223,15 +227,7 @@ export default class Main {
     });
 
     this.params.Bomb = false;
-    this.updateButtons();
-  }
-
-  updateButtons() {
-    Object.keys(this.gui.__folders).map(key => {
-      this.gui.__folders[key].__controllers.map(guiObject => {
-        guiObject.updateDisplay();
-      });
-    });
+    this.guiHelper.updateButtons();
   }
 
   render() {
