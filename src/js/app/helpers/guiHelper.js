@@ -1,13 +1,24 @@
-export default class GUIHelper {
-  constructor(gui) {
-    this.gui = gui;
-  }
+import Config from '../../data/config';
 
-  updateButtons() {
-    Object.keys(this.gui.__folders).map(key => {
-      this.gui.__folders[key].__controllers.map(guiObject => {
+export default class GUIHelper {
+  static updateButtons(gui) {
+    Object.keys(gui.__folders).map(key => {
+      gui.__folders[key].__controllers.map(guiObject => {
         guiObject.updateDisplay();
       });
     });
+  }
+
+  static checkObjectIsEmpty(object, container) {
+    console.log(object);
+
+    if (Object.entries(object).length === 0 && object.constructor === Object) {
+      container.querySelector('#loading').style.display = 'none';
+      console.log(2);
+
+      Config.isLoaded = true;
+      return true;
+    }
+    return false;
   }
 }

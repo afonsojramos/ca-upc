@@ -11,9 +11,9 @@ import Controls from './components/controls';
 
 // Helpers
 import Geometry from './helpers/geometry';
-import Stats from './helpers/stats';
-import Particle from './helpers/particle';
 import GUIHelper from './helpers/guiHelper';
+import Particle from './helpers/particle';
+import Stats from './helpers/stats';
 
 // Model
 import Texture from './model/texture';
@@ -49,12 +49,12 @@ export default class Main {
 
     // Main scene creation
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(Config.fog.color, Config.fog.near);
+    this.scene.background = new THREE.Color(Config.fog.color);
+    this.scene.fog = new THREE.FogExp2(Config.fog.color, Config.fog.near, Config.fog.far);
 
     // GUI
     // eslint-disable-next-line no-undef
     this.gui = new dat.GUI();
-    this.guiHelper = new GUIHelper(this.gui);
 
     // Get Device Pixel Ratio first for retina
     if (window.devicePixelRatio) {
@@ -82,14 +82,15 @@ export default class Main {
     // Instantiate texture class
     this.texture = new Texture();
 
+    // Check existence of Textures
+    if (GUIHelper.checkObjectIsEmpty(Config.texture, this.container)) return;
+
     // Start loading the textures and then go on to load the model after the texture Promises have resolved
-    if (!this.textures) {
-      this.container.querySelector('#loading').style.display = 'none';
-      Config.isLoaded = true;
-      return;
-    }
     this.texture.load().then(() => {
       this.manager = new THREE.LoadingManager();
+
+      // Check existence of Models
+      if (GUIHelper.checkObjectIsEmpty(Config.model, this.container)) return;
 
       // Textures loaded, load model
       this.model = new Model(this.scene, this.manager, this.texture.textures);
@@ -209,7 +210,7 @@ export default class Main {
 
     this.aliveParticles = 0;
     this.params.Reset = false;
-    this.guiHelper.updateButtons();
+    GUIHelper.updateButtons(this.gui);
   }
 
   bomb(delta) {
@@ -227,7 +228,7 @@ export default class Main {
     });
 
     this.params.Bomb = false;
-    this.guiHelper.updateButtons();
+    GUIHelper.updateButtons(this.gui);
   }
 
   render() {

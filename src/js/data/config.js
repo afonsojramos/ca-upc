@@ -13,14 +13,11 @@ export default {
   dpr: 1,
   easing: TWEEN.Easing.Quadratic.InOut,
   duration: 500,
-  /* model: {
-    path: './assets/models/Teapot.json',
-    scale: 1
-  },
+  model: {},
   texture: {
     path: './assets/textures/',
-    imageFiles: [{ name: 'UV', image: 'UV_Grid_Sm.jpg' }]
-  }, */
+    imageFiles: [{ name: 'circuit_pattern', image: 'circuit_pattern.png' }]
+  },
   mesh: {
     enableHelper: false,
     wireframe: false,
@@ -31,8 +28,9 @@ export default {
     }
   },
   fog: {
-    color: 0xffffff,
-    near: 0.0008
+    color: 0xcce0ff,
+    near: 0.0008,
+    far: 10000
   },
   camera: {
     fov: 40,
