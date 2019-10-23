@@ -16,7 +16,7 @@ export default {
   model: {},
   texture: {
     path: './assets/textures/',
-    imageFiles: [{ name: 'circuit_pattern', image: 'circuit_pattern.png' }]
+    imageFiles: [{ name: 'circuitPattern', image: 'circuit_pattern.png' }]
   },
   mesh: {
     enableHelper: false,

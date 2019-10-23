@@ -66,10 +66,12 @@ export default class Geometry {
   placeTriangle() {
     // Create mesh with the geometry
     const material = new THREE.MeshLambertMaterial({
-      color: 0xffeeee,
+      color: 0xff0000,
       side: THREE.DoubleSide
     });
     this.mesh = new THREE.Mesh(this.geo, material);
+    this.mesh.receiveShadow = true;
+    this.mesh.castShadow = true;
 
     // Load the Triangle Plane
     this.plane = new THREE.Plane();
