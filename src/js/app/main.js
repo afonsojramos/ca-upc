@@ -27,6 +27,7 @@ import DatGUI from './managers/datGUI';
 // data
 import Config from '../data/config';
 // -- End of imports
+var GRAVITY = 9.81;
 
 // This class instantiates and ties all of the components together, starts the loading process and renders the main loop
 export default class Main {
@@ -123,8 +124,11 @@ export default class Main {
     this.params = {
       SphereSize: 1,
       Movement: 0,
+      Bounce: 0.3,
       ParticleNumber: 100,
       ParticleFreq: 25,
+      NodeMass: 1,
+      Ball: false,
       Reset: false,
       Bomb: false
     };
@@ -134,16 +138,18 @@ export default class Main {
     const settings = this.gui.addFolder('Settings');
     settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
     settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
+    settings.add(this.params, 'Bounce', 0.1, 1, 0.1);
     settings.add(this.params, 'ParticleNumber', 100, maxParticles, 100);
     settings.add(this.params, 'ParticleFreq', 1, 100, 2);
+    settings.add(this.params, 'NodeMass', 1, 10, 0.5);
     settings.open();
     const controls = this.gui.addFolder('Controls');
+    controls.add(this.params, 'Ball');
     controls.add(this.params, 'Bomb');
     controls.add(this.params, 'Reset');
     controls.open();
 
     this.deltaSum = 0;
-    this.particleFreq = 0.001;
     this.particles = [];
     this.aliveParticles = 0;
     for (let nParticle = 0; nParticle < maxParticles; nParticle++) {
@@ -151,8 +157,6 @@ export default class Main {
     }
 
     this.pins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    this.clothGeometry;
-    this.ball;
   }
 
   createEnvironment() {
@@ -232,8 +236,7 @@ export default class Main {
     topBar.castShadow = true;
     this.scene.add(topBar);
 
-    var GRAVITY = 9.81;
-    this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(1);
+    this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
     this.windForce = new THREE.Vector3(0, 0, 0);
     this.ballPosition = new THREE.Vector3(0, 0, 0);
     this.ballSize = 4; //40
@@ -337,6 +340,7 @@ export default class Main {
         particles[indx].addForce(tmpForce);
       }
     } */
+    this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
 
     for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
       particle = particles[i];
@@ -353,18 +357,20 @@ export default class Main {
     }
 
     // Ball Constraints
-    this.ballPosition.z = -Math.sin(Date.now() / 600) * 9;
-    this.ballPosition.x = Math.cos(Date.now() / 400) * 5;
-    for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
-      particle = particles[i];
-      var pos = particle.position;
-      var diff = new THREE.Vector3();
+    if (this.params.Ball) {
+      this.ballPosition.z = -Math.sin(time / 600) * 9;
+      this.ballPosition.x = Math.cos(time / 400) * 5;
+      for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
+        particle = particles[i];
+        var pos = particle.position;
+        var diff = new THREE.Vector3();
 
-      diff.subVectors(pos, this.ballPosition);
-      if (diff.length() < this.ballSize) {
-        // collided
-        diff.normalize().multiplyScalar(this.ballSize);
-        pos.copy(this.ballPosition).add(diff);
+        diff.subVectors(pos, this.ballPosition);
+        if (diff.length() < this.ballSize) {
+          // collided
+          diff.normalize().multiplyScalar(this.ballSize);
+          pos.copy(this.ballPosition).add(diff);
+        }
       }
     }
 
@@ -445,6 +451,7 @@ export default class Main {
         return false;
       })
       .map(particle => {
+        particle.setBouncing(this.params.Bounce);
         particle.updateParticle(delta, this.params.Movement);
 
         this.geometries.map(geometry => {
