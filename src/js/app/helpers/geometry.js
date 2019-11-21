@@ -42,6 +42,12 @@ export default class Geometry {
         this.dconst = -this.normal.clone().dot(point1);
       };
     }
+
+    if (type === 'cylinder') {
+      return (radius, height, radialSegments) => {
+        this.geo = new THREE.CylinderGeometry(radius, radius, height, radialSegments);
+      };
+    }
   }
 
   placeSphere(position, rotation) {
@@ -112,7 +118,10 @@ export default class Geometry {
       const dist = this.normal.clone().dot(currPosition) + this.dconst;
 
       dist < 0 && this.collide({ currPosition, velocity, bouncing }, dist);
-    } else if (this.geo.type == 'SphereGeometry' && currPosition.distanceTo(this.mesh.position) < this.geo.collRadius) {
+    } else if (
+      (this.geo.type == 'SphereGeometry' || this.geo.type == 'CylinderGeometry') &&
+      currPosition.distanceTo(this.mesh.position) < this.geo.collRadius
+    ) {
       const intersection = this.getSphereIntersectionPoint(currPosition, prevPosition);
       this.dconst = -this.normal.clone().dot(intersection);
       const dist = this.normal.clone().dot(currPosition) + this.dconst;

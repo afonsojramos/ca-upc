@@ -154,6 +154,8 @@ export default class Main {
     controls.add(this.params, 'Bomb');
     controls.add(this.params, 'Reset');
     controls.open();
+    this.guimenu = [];
+    this.guimenu.push(project, settings, controls);
 
     this.deltaSum = 0;
     this.particles = [];
@@ -174,6 +176,10 @@ export default class Main {
     sphere.make('sphere')(10);
     sphere.placeSphere([0, -2, -6.5]);
 
+    const cylinder = new Geometry(this.scene);
+    cylinder.make('cylinder')(10, 20, 10);
+    cylinder.placeSphere([0, -2, -6.5]);
+
     const triangle = new Geometry(this.scene);
     triangle.make('triangle')(
       new THREE.Vector3(11, 30, 20),
@@ -183,7 +189,7 @@ export default class Main {
     triangle.placeTriangle();
 
     this.geometries = [];
-    this.geometries.push(base, sphere, triangle);
+    this.geometries.push(base, sphere, triangle, cylinder);
 
     var restDistance = 2.5;
     var xSegs = 10;
@@ -199,12 +205,12 @@ export default class Main {
     // cloth geometry
     this.clothGeometry = new THREE.ParametricBufferGeometry(this.cloth.clothFunction, this.cloth.w, this.cloth.h);
     // cloth mesh
-    this.object = new THREE.Mesh(this.clothGeometry, clothMaterial);
+    this.clothObject = new THREE.Mesh(this.clothGeometry, clothMaterial);
 
-    this.object.position.set(-50, 21.5, 0);
-    this.object.castShadow = true;
-    this.scene.add(this.object);
-    this.object.customDepthMaterial = new THREE.MeshDepthMaterial({
+    this.clothObject.position.set(-50, 21.5, 0);
+    this.clothObject.castShadow = true;
+    this.scene.add(this.clothObject);
+    this.clothObject.customDepthMaterial = new THREE.MeshDepthMaterial({
       depthPacking: THREE.RGBADepthPacking,
       alphaTest: 0.5
     });
@@ -222,25 +228,28 @@ export default class Main {
     const poleGeo = new THREE.BoxBufferGeometry(0.5, 37.5, 0.5);
     const poleMat = new THREE.MeshLambertMaterial();
     const pole1 = new THREE.Mesh(poleGeo, poleMat);
-    pole1.position.x = -12.5 + this.object.position.x;
+    pole1.position.x = -12.5 + this.clothObject.position.x;
     pole1.position.y = 15;
     pole1.receiveShadow = true;
     pole1.castShadow = true;
     this.scene.add(pole1);
 
     const pole2 = new THREE.Mesh(poleGeo, poleMat);
-    pole2.position.x = 12.5 + this.object.position.x;
+    pole2.position.x = 12.5 + this.clothObject.position.x;
     pole2.position.y = 15;
     pole2.receiveShadow = true;
     pole2.castShadow = true;
     this.scene.add(pole2);
 
     const topBar = new THREE.Mesh(new THREE.BoxBufferGeometry(25.5, 0.5, 0.5), poleMat);
-    topBar.position.x = 0 + this.object.position.x;
+    topBar.position.x = 0 + this.clothObject.position.x;
     topBar.position.y = 34;
     topBar.receiveShadow = true;
     topBar.castShadow = true;
     this.scene.add(topBar);
+
+    this.bars = [];
+    this.bars.push(pole1, pole2, topBar);
 
     this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
     this.windForce = new THREE.Vector3(0, 0, 0);
@@ -398,6 +407,69 @@ export default class Main {
     }
   }
 
+  visibilityProject1(show) {
+    this.clothObject.visible = show;
+    this.geometries.map(({ mesh }) => (mesh.visible = show));
+    this.bars.map(mesh => (mesh.visible = show));
+    this.particles.map(particle => (particle.particle.visible = show));
+  }
+
+  renderProj1(time, delta) {
+    this.visibilityProject1(true);
+    if (this.params.Reset) this.resetGuiParticles(delta);
+    if (this.params.Bomb) this.bomb(delta);
+
+    var windStrength = Math.cos(time / 7000) * 10;
+    this.windForce.set(Math.sin(time / 2000), Math.cos(time / 3000), Math.sin(time / 1000));
+    this.windForce.normalize();
+    this.windForce.multiplyScalar(windStrength);
+
+    this.simulate(time, delta);
+
+    for (var i = 0, il = this.cloth.particles.length; i < il; i++) {
+      var v = this.cloth.particles[i].position;
+      this.clothGeometry.attributes.position.setXYZ(i, v.x, v.y, v.z);
+    }
+
+    this.clothGeometry.attributes.position.needsUpdate = true;
+    this.clothGeometry.computeVertexNormals();
+
+    this.ball.position.copy(this.ballPosition);
+    this.ball.position.add(this.clothObject.position);
+
+    this.geometries.find(({ geo, mesh }) => {
+      if (geo.type === 'SphereGeometry') {
+        mesh.scale.set(this.params.SphereSize, this.params.SphereSize, this.params.SphereSize);
+        geo.collRadius = geo.radius * this.params.SphereSize;
+        return;
+      }
+    });
+
+    this.particleFountain(delta);
+
+    this.particles
+      .filter(particle => {
+        if (particle.lifetime > 0) {
+          return true;
+        }
+        return false;
+      })
+      .map(particle => {
+        particle.setBouncing(this.params.Bounce);
+        particle.updateParticle(delta, this.params.Movement);
+
+        this.geometries.map(geometry => {
+          geometry.checkCollision(particle);
+        });
+
+        particle.render();
+      });
+  }
+
+  renderProj2(time, delta) {
+    this.visibilityProject1(false);
+  }
+
   render(time) {
     // Render rStats if Dev
     if (Config.isDev && Config.isShowingStats) {
@@ -418,55 +490,12 @@ export default class Main {
     // Call any vendor or module frame updates here
     TWEEN.update();
     this.controls.threeControls.update();
-    if (this.params.Reset) this.resetGuiParticles(delta);
-    if (this.params.Bomb) this.bomb(delta);
 
-    //if (this.params.Project == 1)
-    this.particleFountain(delta);
-
-    var windStrength = Math.cos(time / 7000) * 10;
-    this.windForce.set(Math.sin(time / 2000), Math.cos(time / 3000), Math.sin(time / 1000));
-    this.windForce.normalize();
-    this.windForce.multiplyScalar(windStrength);
-
-    this.simulate(time, delta);
-
-    for (var i = 0, il = this.cloth.particles.length; i < il; i++) {
-      var v = this.cloth.particles[i].position;
-      this.clothGeometry.attributes.position.setXYZ(i, v.x, v.y, v.z);
+    if (this.params.Project == 1) {
+      this.renderProj1(time, delta);
+    } else if (this.params.Project == 2) {
+      this.renderProj2(time, delta);
     }
-
-    this.clothGeometry.attributes.position.needsUpdate = true;
-    this.clothGeometry.computeVertexNormals();
-
-    this.ball.position.copy(this.ballPosition);
-    this.ball.position.add(this.object.position);
-
-    this.geometries.find(({ geo, mesh }) => {
-      if (geo.type === 'SphereGeometry') {
-        mesh.scale.set(this.params.SphereSize, this.params.SphereSize, this.params.SphereSize);
-        geo.collRadius = geo.radius * this.params.SphereSize;
-        return;
-      }
-    });
-
-    this.particles
-      .filter(particle => {
-        if (particle.lifetime > 0) {
-          return true;
-        }
-        return false;
-      })
-      .map(particle => {
-        particle.setBouncing(this.params.Bounce);
-        particle.updateParticle(delta, this.params.Movement);
-
-        this.geometries.map(geometry => {
-          geometry.checkCollision(particle);
-        });
-
-        particle.render();
-      });
 
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
