@@ -122,6 +122,7 @@ export default class Main {
 
   init() {
     this.params = {
+      Project: 1,
       SphereSize: 1,
       Movement: 0,
       Bounce: 0.3,
@@ -136,6 +137,9 @@ export default class Main {
 
     const maxParticles = 5000;
 
+    const project = this.gui.addFolder('Project Settings');
+    project.add(this.params, 'Project', { 'Particles & Cloth': 1, Animation: 2 });
+    project.open();
     const settings = this.gui.addFolder('Settings');
     settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
     settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
@@ -242,8 +246,6 @@ export default class Main {
     this.windForce = new THREE.Vector3(0, 0, 0);
     this.ballPosition = new THREE.Vector3(0, 0, 0);
     this.ballSize = 4; //40
-    //WIND var tmpForce = new THREE.Vector3();
-    this.lastTime;
   }
 
   particleFountain(delta) {
@@ -318,10 +320,6 @@ export default class Main {
   }
 
   simulate(time, delta) {
-    if (!this.lastTime) {
-      this.lastTime = time;
-      return;
-    }
     var i, j, particles, il, particle, constraints, constraint;
 
     particles = this.cloth.particles;
@@ -423,6 +421,7 @@ export default class Main {
     if (this.params.Reset) this.resetGuiParticles(delta);
     if (this.params.Bomb) this.bomb(delta);
 
+    //if (this.params.Project == 1)
     this.particleFountain(delta);
 
     var windStrength = Math.cos(time / 7000) * 10;
