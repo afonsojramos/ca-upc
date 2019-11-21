@@ -129,6 +129,7 @@ export default class Main {
       ParticleFreq: 25,
       NodeMass: 1,
       Ball: false,
+      Wind: false,
       Reset: false,
       Bomb: false
     };
@@ -145,6 +146,7 @@ export default class Main {
     settings.open();
     const controls = this.gui.addFolder('Controls');
     controls.add(this.params, 'Ball');
+    controls.add(this.params, 'Wind');
     controls.add(this.params, 'Bomb');
     controls.add(this.params, 'Reset');
     controls.open();
@@ -324,22 +326,25 @@ export default class Main {
 
     particles = this.cloth.particles;
     //WIND Aerodynamics forces
-    /* var indx;
-    var normal = new THREE.Vector3();
-    var indices = this.clothGeometry.index;
-    var normals = this.clothGeometry.attributes.normal;
-  
-    for (i = 0, il = indices.count; i < il; i += 3) {
-      for (j = 0; j < 3; j++) {
-        indx = indices.getX(i + j);
-        normal.fromBufferAttribute(normals, indx);
-        tmpForce
-          .copy(normal)
-          .normalize()
-          .multiplyScalar(normal.dot(windForce));
-        particles[indx].addForce(tmpForce);
+
+    if (this.params.Wind) {
+      var tmpForce = new THREE.Vector3();
+      var normal = new THREE.Vector3();
+      var indices = this.clothGeometry.index;
+      var normals = this.clothGeometry.attributes.normal;
+
+      for (i = 0, il = indices.count; i < il; i += 2) {
+        for (j = 0; j < 2; j++) {
+          var indx = indices.getX(i + j);
+          normal.fromBufferAttribute(normals, indx);
+          tmpForce
+            .copy(normal)
+            .normalize()
+            .multiplyScalar(normal.dot(this.windForce));
+          particles[indx].addForce(tmpForce);
+        }
       }
-    } */
+    }
     this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
 
     for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
@@ -358,6 +363,7 @@ export default class Main {
 
     // Ball Constraints
     if (this.params.Ball) {
+      this.ball.visible = true;
       this.ballPosition.z = -Math.sin(time / 600) * 9;
       this.ballPosition.x = Math.cos(time / 400) * 5;
       for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
@@ -372,6 +378,8 @@ export default class Main {
           pos.copy(this.ballPosition).add(diff);
         }
       }
+    } else {
+      this.ball.visible = false;
     }
 
     // Floor Constraints
@@ -417,7 +425,7 @@ export default class Main {
 
     this.particleFountain(delta);
 
-    var windStrength = Math.cos(time / 7000) * 20 + 40;
+    var windStrength = Math.cos(time / 7000) * 10;
     this.windForce.set(Math.sin(time / 2000), Math.cos(time / 3000), Math.sin(time / 1000));
     this.windForce.normalize();
     this.windForce.multiplyScalar(windStrength);
