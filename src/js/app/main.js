@@ -276,7 +276,7 @@ export default class Main {
           particle.setVelocity(randX, 20, randv);
           particle.setForce(0, -10, 0);
           particle.setLifetime(50);
-          particle.previousPosition = particle.currPosition
+          particle.prevPosition = particle.currPosition
             .clone()
             .sub(particle.velocity.clone().multiplyScalar(delta));
 
