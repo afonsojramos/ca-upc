@@ -26,7 +26,7 @@ import DatGUI from './managers/datGUI';
 
 // data
 import Config from '../data/config';
-// -- End of imports
+
 var GRAVITY = 9.81;
 
 // This class instantiates and ties all of the components together, starts the loading process and renders the main loop
@@ -138,11 +138,18 @@ export default class Main {
     const maxParticles = 5000;
 
     const project = this.gui.addFolder('Project Settings');
-    project.add(this.params, 'Project', { 'Particles & Cloth': 1, Animation: 2 });
+    project.add(this.params, 'Project', {
+      'Particles & Cloth': 1,
+      Animation: 2
+    });
     project.open();
     const settings = this.gui.addFolder('Settings');
     settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
-    settings.add(this.params, 'Movement', { 'Simple Euler': 0, 'Semi Euler': 1, Verlet: 2 });
+    settings.add(this.params, 'Movement', {
+      'Simple Euler': 0,
+      'Semi Euler': 1,
+      Verlet: 2
+    });
     settings.add(this.params, 'Bounce', 0.1, 1, 0.1);
     settings.add(this.params, 'ParticleNumber', 100, maxParticles, 100);
     settings.add(this.params, 'ParticleFreq', 1, 100, 2);
@@ -276,9 +283,7 @@ export default class Main {
           particle.setVelocity(randX, 20, randv);
           particle.setForce(0, -10, 0);
           particle.setLifetime(50);
-          particle.prevPosition = particle.currPosition
-            .clone()
-            .sub(particle.velocity.clone().multiplyScalar(delta));
+          particle.prevPosition = particle.currPosition.clone().sub(particle.velocity.clone().multiplyScalar(delta));
 
           this.aliveParticles++;
           this.deltaSum = 0;
@@ -329,82 +334,68 @@ export default class Main {
   }
 
   simulate(time, delta) {
-    var i, j, particles, il, particle, constraints, constraint;
-
-    particles = this.cloth.particles;
     //WIND Aerodynamics forces
 
     if (this.params.Wind) {
       var tmpForce = new THREE.Vector3();
       var normal = new THREE.Vector3();
       var indices = this.clothGeometry.index;
-      var normals = this.clothGeometry.attributes.normal;
 
-      for (i = 0, il = indices.count; i < il; i += 2) {
-        for (j = 0; j < 2; j++) {
+      for (var i = 0; i < indices.count; i += 2) {
+        for (var j = 0; j < 2; j++) {
           var indx = indices.getX(i + j);
-          normal.fromBufferAttribute(normals, indx);
+          normal.fromBufferAttribute(this.clothGeometry.attributes.normal, indx);
           tmpForce
             .copy(normal)
             .normalize()
             .multiplyScalar(normal.dot(this.windForce));
-          particles[indx].addForce(tmpForce);
+          this.cloth.particles[indx].addForce(tmpForce);
         }
       }
     }
     this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
 
-    for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
-      particle = particles[i];
+    this.cloth.particles.map(particle => {
       particle.addForce(this.gravity);
       particle.integrate(delta * delta * delta);
-    }
+    });
 
     // Start Constraints
-    constraints = this.cloth.constraints;
-    il = constraints.length;
-    for (i = 0; i < il; i++) {
-      constraint = constraints[i];
+    this.cloth.constraints.map(constraint => {
       this.satisfyConstraints(constraint[0], constraint[1], constraint[2]);
-    }
+    });
 
     // Ball Constraints
     if (this.params.Ball) {
       this.ball.visible = true;
       this.ballPosition.z = -Math.sin(time / 600) * 9;
       this.ballPosition.x = Math.cos(time / 400) * 5;
-      for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
-        particle = particles[i];
-        var pos = particle.position;
+      this.cloth.particles.map(({ position }) => {
         var diff = new THREE.Vector3();
 
-        diff.subVectors(pos, this.ballPosition);
+        diff.subVectors(position, this.ballPosition);
         if (diff.length() < this.ballSize) {
           // collided
           diff.normalize().multiplyScalar(this.ballSize);
-          pos.copy(this.ballPosition).add(diff);
+          position.copy(this.ballPosition).add(diff);
         }
-      }
+      });
     } else {
       this.ball.visible = false;
     }
 
     // Floor Constraints
-    for (particles = this.cloth.particles, i = 0, il = particles.length; i < il; i++) {
-      particle = particles[i];
-      pos = particle.position;
-      if (pos.y < -25) {
-        pos.y = -25;
+    this.cloth.particles.map(({ position }) => {
+      if (position.y < -25) {
+        position.y = -25;
       }
-    }
+    });
 
-    // Pin Constraints
-    for (i = 0, il = this.pins.length; i < il; i++) {
-      var xy = this.pins[i];
-      var p = particles[xy];
+    this.pins.map(pin => {
+      var p = this.cloth.particles[pin];
       p.position.copy(p.original);
       p.previous.copy(p.original);
-    }
+    });
   }
 
   visibilityProject1(show) {

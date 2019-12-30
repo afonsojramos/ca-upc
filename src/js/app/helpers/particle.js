@@ -13,7 +13,9 @@ export default class Particle {
     const geometry = new THREE.BoxGeometry(size, size, size);
     const color = new THREE.Color(0xffffff);
     color.setHex(Math.random() * 0xffffff);
-    const material = new THREE.MeshPhongMaterial({ color });
+    const material = new THREE.MeshPhongMaterial({
+      color
+    });
     this.particle = new THREE.Mesh(geometry, material);
     this.particle.position.set(this.currPosition.x, this.currPosition.y, this.currPosition.z);
     scene.add(this.particle);
