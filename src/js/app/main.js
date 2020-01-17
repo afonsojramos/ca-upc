@@ -1,15 +1,18 @@
 // Global imports -
 import {
   BoxBufferGeometry,
+  BoxGeometry,
   Clock,
   Color,
   DoubleSide,
   FogExp2,
   LoadingManager,
   Mesh,
+  MeshBasicMaterial,
   MeshDepthMaterial,
   MeshLambertMaterial,
   ParametricBufferGeometry,
+  PlaneBufferGeometry,
   RGBADepthPacking,
   Scene,
   SphereBufferGeometry,
@@ -56,8 +59,23 @@ export default class Main {
 
     this.createEnvironment();
 
+    this.controleCube();
+
     // Start render which does not wait for model fully loaded
     this.render();
+  }
+
+  controleCube() {
+    this.createCube();
+    this.drag = 0.01;
+    const cube = this.gui.addFolder('Cube');
+    this.cubeRed.position.set(0.01, 25.01, 0.01);
+    cube.add(this.cubeRed.position, 'x', -5.0, 5.0).step(0.01).listen();
+    cube.add(this.cubeRed.position, 'y', 5.0, 25.0).step(0.01).listen();
+    cube.add(this.cubeRed.position, 'z', -5.0, 5.0).step(0.01).listen();
+    cube.add(this, 'drag', -5.0, 5.0).step(0.01).listen();
+    //gui.add(controlObject.quaternion, 'x', -1.0, 1.0).step(0.01).listen();
+    cube.open();
   }
 
   initEngine() {
@@ -240,6 +258,7 @@ export default class Main {
     this.ball = new Mesh(ballGeo, ballMaterial);
     this.ball.castShadow = true;
     this.ball.receiveShadow = true;
+    this.ball.visible = false;
     this.scene.add(this.ball);
 
     // Poles
@@ -273,6 +292,44 @@ export default class Main {
     this.windForce = new Vector3(0, 0, 0);
     this.ballPosition = new Vector3(0, 0, 0);
     this.ballSize = 4; //40
+  }
+
+  createCube() {
+    const geo = new PlaneBufferGeometry(200, 200, 8, 8);
+    const mat = new MeshBasicMaterial({
+      color: 0x000000,
+      side: DoubleSide
+    });
+    this.rigidPlane = new Mesh(geo, mat);
+    this.rigidPlane.rotateX(-Math.PI / 2);
+
+    this.scene.add(this.rigidPlane);
+
+    const cubeGeometry = new BoxGeometry(10, 10, 10);
+    const cubeMaterial = new MeshBasicMaterial({
+      wireframe: true
+    });
+    cubeMaterial.color = new Color('red');
+    this.cubeRed = new Mesh(cubeGeometry, cubeMaterial);
+    this.cubeRed.name = 'cubeRed';
+
+    this.scene.add(this.cubeRed);
+
+    this.cube = {
+      m: 1, // Cube mass in kg
+      rho: 1.2, // Density of air.
+      cubeDrag: 1.05, // Drag for ball is 0.47. Cube is 1.05
+      A: 60 / 1e4, // Surface area for cube is 6a^2
+      vx: 0,
+      ax: 0,
+      vy: 0,
+      ay: 0,
+      vz: 0,
+      az: 0,
+      e: -1.5, // Coefficient of restitution ("bounciness")
+      height: 10,
+      r: 4
+    };
   }
 
   particleFountain(delta) {
@@ -413,17 +470,20 @@ export default class Main {
     });
   }
 
-  visibilityProject1(show) {
+  visibilityProject(show) {
     this.clothObject.visible = show;
     this.geometries.map(({
       mesh
     }) => (mesh.visible = show));
     this.bars.map(mesh => (mesh.visible = show));
     this.particles.map(particle => (particle.particle.visible = show));
+    this.params.Ball && show ? this.ball.visible = show : this.ball.visible = false
+    this.cubeRed.visible = !show;
+    this.rigidPlane.visible = !show;
   }
 
   renderProj1(time, delta) {
-    this.visibilityProject1(true);
+    this.visibilityProject(true);
     if (this.params.Reset) this.resetGuiParticles(delta);
     if (this.params.Bomb) this.bomb(delta);
 
@@ -478,7 +538,41 @@ export default class Main {
   }
 
   renderProj2(time, delta) {
-    this.visibilityProject1(false);
+    this.visibilityProject(false);
+
+    var forcey = 0;
+
+    /* Gravity of Earth */
+    forcey += this.cube.m * 9.81;
+
+    /* Air resistance force; this would affect both x- and y-directions, but we're only looking at the y-axis in this example. */
+    // https://en.wikipedia.org/wiki/Drag_(physics)
+    var drag = -0.5 * this.cube.rho * this.cube.cubeDrag * this.cube.A * this.cube.vy * this.cube.vy;
+    this.drag = drag;
+    forcey += drag;
+
+    /* Verlet integration for the y-direction */
+    var dx = this.cube.vx * delta + (0.5 * this.cube.ax * delta * delta);
+    var dy = this.cube.vy * delta + (0.5 * this.cube.ay * delta * delta);
+    var dz = this.cube.vz * delta + (0.5 * this.cube.az * delta * delta);
+
+    if (this.cubeRed.position.y + this.cube.r <= this.cube.height && this.cube.vy > 0) {
+      /* This is a simplification of impulse-momentum collision response. e should be a negative number, which will change the velocity's direction. */
+      this.cube.vy *= this.cube.e;
+      /* Move the ball back a little bit so it's not still "stuck" in the wall. */
+      this.cubeRed.position.y = this.cube.height - this.cube.r;
+    } else {
+      /* The following line is because the math assumes meters but we're assuming 1 cm per pixel, so we need to scale the results */
+      this.cubeRed.position.x -= dx;
+      this.cubeRed.position.y -= dy;
+      this.cubeRed.position.z -= dz;
+      var newAccelY = forcey / this.cube.m;
+      var avgAccelY = 0.5 * (newAccelY + this.cube.ay);
+      this.cube.vy += avgAccelY * delta;
+      
+      var tempy = this.cubeRed.position.y - forcey / 100;
+      tempy >= 5 ? this.cubeRed.position.y = tempy : this.cubeRed.position.y = 5;
+    }
   }
 
   render(time) {
