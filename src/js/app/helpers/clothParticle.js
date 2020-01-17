@@ -1,16 +1,18 @@
-import * as THREE from 'three';
+import {
+  Vector3
+} from 'three';
 
 var DAMPING = 0.03;
 var DRAG = 1 - DAMPING;
 
 export default class ClothParticle {
   constructor(x, y, z, clothFunction) {
-    this.position = new THREE.Vector3();
-    this.previous = new THREE.Vector3();
-    this.original = new THREE.Vector3();
-    this.force = new THREE.Vector3(0, 0, 0); // acceleration
-    this.tmp = new THREE.Vector3();
-    this.tmp2 = new THREE.Vector3();
+    this.position = new Vector3();
+    this.previous = new Vector3();
+    this.original = new Vector3();
+    this.force = new Vector3(0, 0, 0); // acceleration
+    this.tmp = new Vector3();
+    this.tmp2 = new Vector3();
     // init
     clothFunction(x, y, this.position); // position
     clothFunction(x, y, this.previous); // previous

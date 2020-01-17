@@ -1,4 +1,6 @@
-import * as THREE from 'three';
+import {
+  AnimationMixer
+} from 'three';
 
 export default class Animation {
   constructor(obj, clip) {
@@ -6,7 +8,7 @@ export default class Animation {
     this.obj = obj;
 
     // Initialize animation mixer
-    this.mixer = new THREE.AnimationMixer(this.obj);
+    this.mixer = new AnimationMixer(this.obj);
 
     // Simple animation player
     this.playClip(clip);
@@ -20,7 +22,7 @@ export default class Animation {
 
   // Call update in loop
   update(delta) {
-    if(this.mixer) {
+    if (this.mixer) {
       this.mixer.update(delta);
     }
   }

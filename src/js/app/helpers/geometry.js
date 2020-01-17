@@ -1,11 +1,22 @@
-import * as THREE from 'three';
+import {
+  PlaneGeometry,
+  SphereGeometry,
+  Geometry,
+  Triangle,
+  Vector3,
+  Face3,
+  Mesh,
+  MeshLambertMaterial,
+  DoubleSide,
+  Plane
+} from 'three';
 
 import Material from './material';
 
 import Config from '../../data/config';
 
 // This helper class can be used to create and then place geometry in the scene
-export default class Geometry {
+export default class Geo {
   constructor(scene) {
     this.scene = scene;
     this.geo = null;
@@ -14,13 +25,13 @@ export default class Geometry {
   make(type) {
     if (type === 'plane') {
       return (width, height, widthSegments = 1, heightSegments = 1) => {
-        this.geo = new THREE.PlaneGeometry(width, height, widthSegments, heightSegments);
+        this.geo = new PlaneGeometry(width, height, widthSegments, heightSegments);
       };
     }
 
     if (type === 'sphere') {
       return (radius, widthSegments = 32, heightSegments = 32) => {
-        this.geo = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+        this.geo = new SphereGeometry(radius, widthSegments, heightSegments);
         this.geo.radius = radius;
         this.geo.collRadius = radius;
       };
@@ -28,24 +39,18 @@ export default class Geometry {
 
     if (type === 'triangle') {
       return (point1, point2, point3) => {
-        this.geo = new THREE.Geometry();
-        this.triangle = new THREE.Triangle(point1, point2, point3);
+        this.geo = new Geometry();
+        this.triangle = new Triangle(point1, point2, point3);
         this.geo.vertices.push(this.triangle.a);
         this.geo.vertices.push(this.triangle.b);
         this.geo.vertices.push(this.triangle.c);
 
         // Calculate triangle characteristics
-        this.normal = new THREE.Vector3();
+        this.normal = new Vector3();
         this.triangle.getNormal(this.normal);
-        this.geo.faces.push(new THREE.Face3(0, 1, 2, this.normal));
+        this.geo.faces.push(new Face3(0, 1, 2, this.normal));
         this.geo.computeFaceNormals();
         this.dconst = -this.normal.clone().dot(point1);
-      };
-    }
-
-    if (type === 'cylinder') {
-      return (radius, height, radialSegments) => {
-        this.geo = new THREE.CylinderGeometry(radius, radius, height, radialSegments);
       };
     }
   }
@@ -55,7 +60,7 @@ export default class Geometry {
     const material = new Material(0x00ff00).standard;
     material.opacity = 0.8;
     material.transparent = true;
-    this.mesh = new THREE.Mesh(this.geo, material);
+    this.mesh = new Mesh(this.geo, material);
 
     // Positions Sphere
     this.mesh.position.set(...position);
@@ -71,16 +76,16 @@ export default class Geometry {
 
   placeTriangle() {
     // Create mesh with the geometry
-    const material = new THREE.MeshLambertMaterial({
+    const material = new MeshLambertMaterial({
       color: 0xff0000,
-      side: THREE.DoubleSide
+      side: DoubleSide
     });
-    this.mesh = new THREE.Mesh(this.geo, material);
+    this.mesh = new Mesh(this.geo, material);
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = true;
 
     // Load the Triangle Plane
-    this.plane = new THREE.Plane();
+    this.plane = new Plane();
     this.triangle.getPlane(this.plane);
 
     // Add mesh to scene
@@ -90,43 +95,56 @@ export default class Geometry {
   placePlane(point, dir) {
     // Create plane
     this.position = point;
-    const plane = new THREE.Plane();
+    const plane = new Plane();
     plane.setFromNormalAndCoplanarPoint(dir, point).normalize();
     this.normal = dir;
     this.dconst = -dir.dot(point);
 
     // Align the geometry to the plane
     const coplanarPoint = plane.coplanarPoint(point);
-    const focalPoint = new THREE.Vector3().copy(coplanarPoint).add(plane.normal);
+    const focalPoint = new Vector3().copy(coplanarPoint).add(plane.normal);
     this.geo.lookAt(focalPoint);
 
     // Create mesh with the geometry
-    const planeMaterial = new THREE.MeshLambertMaterial({
+    const planeMaterial = new MeshLambertMaterial({
       color: 0xffff00,
-      side: THREE.DoubleSide
+      side: DoubleSide
     });
-    this.mesh = new THREE.Mesh(this.geo, planeMaterial);
+    this.mesh = new Mesh(this.geo, planeMaterial);
 
     // Add mesh to scene
     this.scene.add(this.mesh);
   }
 
   checkCollision(particle) {
-    const { currPosition, prevPosition, velocity, bouncing } = particle;
+    const {
+      currPosition,
+      prevPosition,
+      velocity,
+      bouncing
+    } = particle;
 
     if (this.geo.type == 'PlaneGeometry') {
       const dist = this.normal.clone().dot(currPosition) + this.dconst;
 
-      dist < 0 && this.collide({ currPosition, velocity, bouncing }, dist);
+      dist < 0 && this.collide({
+        currPosition,
+        velocity,
+        bouncing
+      }, dist);
     } else if (
       (this.geo.type == 'SphereGeometry' || this.geo.type == 'CylinderGeometry') &&
-      currPosition.distanceTo(this.mesh.position) < this.geo.collRadius
+            currPosition.distanceTo(this.mesh.position) < this.geo.collRadius
     ) {
       const intersection = this.getSphereIntersectionPoint(currPosition, prevPosition);
       this.dconst = -this.normal.clone().dot(intersection);
       const dist = this.normal.clone().dot(currPosition) + this.dconst;
 
-      this.collide({ currPosition, velocity, bouncing }, dist);
+      this.collide({
+        currPosition,
+        velocity,
+        bouncing
+      }, dist);
     } else if (this.geo.type == 'Geometry') {
       const dist = this.normal.clone().dot(currPosition) + this.dconst;
       const intersection = this.intersecSegment(currPosition, prevPosition);
@@ -134,24 +152,34 @@ export default class Geometry {
       if (intersection) {
         // three.js has barycentric product funcion built-in, but opted to do it from scratch
         const barycentricValue =
-          this.getBarycentricProduct(intersection, this.geo.vertices[1], this.geo.vertices[2]) +
-          this.getBarycentricProduct(this.geo.vertices[0], intersection, this.geo.vertices[2]) +
-          this.getBarycentricProduct(this.geo.vertices[0], this.geo.vertices[1], intersection) -
-          this.getBarycentricProduct(this.geo.vertices[0], this.geo.vertices[1], this.geo.vertices[2]);
+                    this.getBarycentricProduct(intersection, this.geo.vertices[1], this.geo.vertices[2]) +
+                    this.getBarycentricProduct(this.geo.vertices[0], intersection, this.geo.vertices[2]) +
+                    this.getBarycentricProduct(this.geo.vertices[0], this.geo.vertices[1], intersection) -
+                    this.getBarycentricProduct(this.geo.vertices[0], this.geo.vertices[1], this.geo.vertices[2]);
 
-        barycentricValue < 1 && dist < 0 && this.collide({ currPosition, velocity, bouncing }, dist);
+        barycentricValue < 1 && dist < 0 && this.collide({
+          currPosition,
+          velocity,
+          bouncing
+        }, dist);
       }
     }
   }
 
-  collide({ currPosition, velocity, bouncing }, dist) {
+  collide({
+    currPosition,
+    velocity,
+    bouncing
+  }, dist) {
     currPosition.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dist));
 
     const dtVelocity = this.normal.clone().dot(velocity) + this.dconst;
     velocity.sub(this.normal.clone().multiplyScalar((1 + bouncing) * dtVelocity));
   }
 
-  getMirrorPoint({ prevPosition }) {
+  getMirrorPoint({
+    prevPosition
+  }) {
     return prevPosition - 2 * (this.normal.clone().dot(prevPosition) + this.dconst) * this.normal;
   }
 
@@ -160,10 +188,10 @@ export default class Geometry {
     const a = vectorDelta.clone().dot(vectorDelta);
     const b = 2 * vectorDelta.clone().dot(prevPosition.clone().sub(this.mesh.position));
     const c =
-      this.mesh.position.clone().dot(this.mesh.position) +
-      prevPosition.clone().dot(prevPosition) -
-      2 * prevPosition.clone().dot(this.mesh.position) -
-      this.geo.collRadius * this.geo.collRadius;
+            this.mesh.position.clone().dot(this.mesh.position) +
+            prevPosition.clone().dot(prevPosition) -
+            2 * prevPosition.clone().dot(this.mesh.position) -
+            this.geo.collRadius * this.geo.collRadius;
 
     const exp = b * b - 4 * a * c;
     const alpha1 = ((-b + Math.sqrt(exp)) / 2) * a;
@@ -207,22 +235,22 @@ export default class Geometry {
 
   getBarycentricProduct(v1, v2, v3) {
     const barycentricProduct =
-      v2
-        .clone()
-        .sub(v1)
-        .cross(v3.clone().sub(v1))
-        .length() / 2;
+            v2
+              .clone()
+              .sub(v1)
+              .cross(v3.clone().sub(v1))
+              .length() / 2;
     return barycentricProduct;
   }
 
   isOutOfBounds(point) {
     if (this.geo.type == 'PlaneGeometry') {
       if (
-        /* If b,c,d,e are a rectangle and a is coplanar with them, you need only check that ⟨b,c−b⟩≤⟨a,c−b⟩≤⟨c,c−b⟩ and ⟨b,e−b⟩≤⟨a,e−b⟩≤⟨e,e−b⟩ (where ⟨,⟩ denotes scalar product). */
+      /* If b,c,d,e are a rectangle and a is coplanar with them, you need only check that ⟨b,c−b⟩≤⟨a,c−b⟩≤⟨c,c−b⟩ and ⟨b,e−b⟩≤⟨a,e−b⟩≤⟨e,e−b⟩ (where ⟨,⟩ denotes scalar product). */
         point.x > this.mesh.position.x + this.geo.width ||
-        point.x < this.mesh.position.x - this.geo.width ||
-        point.z > this.mesh.position.z + this.geo.width ||
-        point.z < this.mesh.position.z - this.geo.width
+                point.x < this.mesh.position.x - this.geo.width ||
+                point.z > this.mesh.position.z + this.geo.width ||
+                point.z < this.mesh.position.z - this.geo.width
       )
         return true;
     }

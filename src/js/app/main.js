@@ -1,5 +1,20 @@
 // Global imports -
-import * as THREE from 'three';
+import {
+  BoxBufferGeometry,
+  Clock,
+  Color,
+  DoubleSide,
+  FogExp2,
+  LoadingManager,
+  Mesh,
+  MeshDepthMaterial,
+  MeshLambertMaterial,
+  ParametricBufferGeometry,
+  RGBADepthPacking,
+  Scene,
+  SphereBufferGeometry,
+  Vector3
+} from 'three';
 import TWEEN from 'tween.js';
 
 // Local imports -
@@ -11,7 +26,7 @@ import Controls from './components/controls';
 
 // Helpers
 import Cloth from './helpers/cloth';
-import Geometry from './helpers/geometry';
+import Geo from './helpers/geometry';
 import GUIHelper from './helpers/guiHelper';
 import Particle from './helpers/particle';
 import Stats from './helpers/stats';
@@ -47,12 +62,12 @@ export default class Main {
 
   initEngine() {
     // Start Three clock
-    this.clock = new THREE.Clock();
+    this.clock = new Clock();
 
     // Main scene creation
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(Config.fog.color);
-    this.scene.fog = new THREE.FogExp2(Config.fog.color, Config.fog.near, Config.fog.far);
+    this.scene = new Scene();
+    this.scene.background = new Color(Config.fog.color);
+    this.scene.fog = new FogExp2(Config.fog.color, Config.fog.near, Config.fog.far);
 
     // GUI
     // eslint-disable-next-line no-undef
@@ -89,7 +104,7 @@ export default class Main {
 
     // Start loading the textures and then go on to load the model after the texture Promises have resolved
     this.texture.load().then(() => {
-      this.manager = new THREE.LoadingManager();
+      this.manager = new LoadingManager();
 
       // Check existence of Models
       if (GUIHelper.checkObjectIsEmpty(Config.model, this.container)) return;
@@ -175,28 +190,24 @@ export default class Main {
   }
 
   createEnvironment() {
-    const base = new Geometry(this.scene);
+    const base = new Geo(this.scene);
     base.make('plane')(140, 140, 10, 10);
-    base.placePlane(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.1, 1, 0));
+    base.placePlane(new Vector3(0, 0, 0), new Vector3(0.1, 1, 0));
 
-    const sphere = new Geometry(this.scene);
+    const sphere = new Geo(this.scene);
     sphere.make('sphere')(10);
     sphere.placeSphere([0, -2, -6.5]);
 
-    const cylinder = new Geometry(this.scene);
-    cylinder.make('cylinder')(10, 20, 10);
-    cylinder.placeSphere([0, -2, -6.5]);
-
-    const triangle = new Geometry(this.scene);
+    const triangle = new Geo(this.scene);
     triangle.make('triangle')(
-      new THREE.Vector3(11, 30, 20),
-      new THREE.Vector3(0, 15, -5),
-      new THREE.Vector3(-11, 30, 20)
+      new Vector3(11, 30, 20),
+      new Vector3(0, 15, -5),
+      new Vector3(-11, 30, 20)
     );
     triangle.placeTriangle();
 
     this.geometries = [];
-    this.geometries.push(base, sphere, triangle, cylinder);
+    this.geometries.push(base, sphere, triangle);
 
     var restDistance = 2.5;
     var xSegs = 10;
@@ -204,51 +215,51 @@ export default class Main {
     this.cloth = new Cloth(xSegs, ySegs, restDistance);
 
     // cloth material
-    var clothMaterial = new THREE.MeshLambertMaterial({
-      side: THREE.DoubleSide,
+    var clothMaterial = new MeshLambertMaterial({
+      side: DoubleSide,
       alphaTest: 0.5,
       wireframe: true
     });
     // cloth geometry
-    this.clothGeometry = new THREE.ParametricBufferGeometry(this.cloth.clothFunction, this.cloth.w, this.cloth.h);
+    this.clothGeometry = new ParametricBufferGeometry(this.cloth.clothFunction, this.cloth.w, this.cloth.h);
     // cloth mesh
-    this.clothObject = new THREE.Mesh(this.clothGeometry, clothMaterial);
+    this.clothObject = new Mesh(this.clothGeometry, clothMaterial);
 
     this.clothObject.position.set(-50, 21.5, 0);
     this.clothObject.castShadow = true;
     this.scene.add(this.clothObject);
-    this.clothObject.customDepthMaterial = new THREE.MeshDepthMaterial({
-      depthPacking: THREE.RGBADepthPacking,
+    this.clothObject.customDepthMaterial = new MeshDepthMaterial({
+      depthPacking: RGBADepthPacking,
       alphaTest: 0.5
     });
 
     // Ball
     this.ballSize = 4;
-    const ballGeo = new THREE.SphereBufferGeometry(this.ballSize, 32, 16);
-    const ballMaterial = new THREE.MeshLambertMaterial();
-    this.ball = new THREE.Mesh(ballGeo, ballMaterial);
+    const ballGeo = new SphereBufferGeometry(this.ballSize, 32, 16);
+    const ballMaterial = new MeshLambertMaterial();
+    this.ball = new Mesh(ballGeo, ballMaterial);
     this.ball.castShadow = true;
     this.ball.receiveShadow = true;
     this.scene.add(this.ball);
 
     // Poles
-    const poleGeo = new THREE.BoxBufferGeometry(0.5, 37.5, 0.5);
-    const poleMat = new THREE.MeshLambertMaterial();
-    const pole1 = new THREE.Mesh(poleGeo, poleMat);
+    const poleGeo = new BoxBufferGeometry(0.5, 37.5, 0.5);
+    const poleMat = new MeshLambertMaterial();
+    const pole1 = new Mesh(poleGeo, poleMat);
     pole1.position.x = -12.5 + this.clothObject.position.x;
     pole1.position.y = 15;
     pole1.receiveShadow = true;
     pole1.castShadow = true;
     this.scene.add(pole1);
 
-    const pole2 = new THREE.Mesh(poleGeo, poleMat);
+    const pole2 = new Mesh(poleGeo, poleMat);
     pole2.position.x = 12.5 + this.clothObject.position.x;
     pole2.position.y = 15;
     pole2.receiveShadow = true;
     pole2.castShadow = true;
     this.scene.add(pole2);
 
-    const topBar = new THREE.Mesh(new THREE.BoxBufferGeometry(25.5, 0.5, 0.5), poleMat);
+    const topBar = new Mesh(new BoxBufferGeometry(25.5, 0.5, 0.5), poleMat);
     topBar.position.x = 0 + this.clothObject.position.x;
     topBar.position.y = 34;
     topBar.receiveShadow = true;
@@ -258,9 +269,9 @@ export default class Main {
     this.bars = [];
     this.bars.push(pole1, pole2, topBar);
 
-    this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
-    this.windForce = new THREE.Vector3(0, 0, 0);
-    this.ballPosition = new THREE.Vector3(0, 0, 0);
+    this.gravity = new Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
+    this.windForce = new Vector3(0, 0, 0);
+    this.ballPosition = new Vector3(0, 0, 0);
     this.ballSize = 4; //40
   }
 
@@ -323,7 +334,7 @@ export default class Main {
   }
 
   satisfyConstraints(p1, p2, distance) {
-    var diff = new THREE.Vector3();
+    var diff = new Vector3();
     diff.subVectors(p2.position, p1.position);
     var currentDist = diff.length();
     if (currentDist === 0) return; // prevents division by 0
@@ -337,8 +348,8 @@ export default class Main {
     //WIND Aerodynamics forces
 
     if (this.params.Wind) {
-      var tmpForce = new THREE.Vector3();
-      var normal = new THREE.Vector3();
+      var tmpForce = new Vector3();
+      var normal = new Vector3();
       var indices = this.clothGeometry.index;
 
       for (var i = 0; i < indices.count; i += 2) {
@@ -353,7 +364,7 @@ export default class Main {
         }
       }
     }
-    this.gravity = new THREE.Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
+    this.gravity = new Vector3(0, -GRAVITY, 0).multiplyScalar(this.params.NodeMass);
 
     this.cloth.particles.map(particle => {
       particle.addForce(this.gravity);
@@ -370,8 +381,10 @@ export default class Main {
       this.ball.visible = true;
       this.ballPosition.z = -Math.sin(time / 600) * 9;
       this.ballPosition.x = Math.cos(time / 400) * 5;
-      this.cloth.particles.map(({ position }) => {
-        var diff = new THREE.Vector3();
+      this.cloth.particles.map(({
+        position
+      }) => {
+        var diff = new Vector3();
 
         diff.subVectors(position, this.ballPosition);
         if (diff.length() < this.ballSize) {
@@ -385,7 +398,9 @@ export default class Main {
     }
 
     // Floor Constraints
-    this.cloth.particles.map(({ position }) => {
+    this.cloth.particles.map(({
+      position
+    }) => {
       if (position.y < -25) {
         position.y = -25;
       }
@@ -400,7 +415,9 @@ export default class Main {
 
   visibilityProject1(show) {
     this.clothObject.visible = show;
-    this.geometries.map(({ mesh }) => (mesh.visible = show));
+    this.geometries.map(({
+      mesh
+    }) => (mesh.visible = show));
     this.bars.map(mesh => (mesh.visible = show));
     this.particles.map(particle => (particle.particle.visible = show));
   }
@@ -428,7 +445,10 @@ export default class Main {
     this.ball.position.copy(this.ballPosition);
     this.ball.position.add(this.clothObject.position);
 
-    this.geometries.find(({ geo, mesh }) => {
+    this.geometries.map(({
+      geo,
+      mesh
+    }) => {
       if (geo.type === 'SphereGeometry') {
         mesh.scale.set(this.params.SphereSize, this.params.SphereSize, this.params.SphereSize);
         geo.collRadius = geo.radius * this.params.SphereSize;
