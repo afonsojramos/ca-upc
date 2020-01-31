@@ -59,23 +59,8 @@ export default class Main {
 
     this.createEnvironment();
 
-    this.controleCube();
-
     // Start render which does not wait for model fully loaded
     this.render();
-  }
-
-  controleCube() {
-    this.createCube();
-    this.drag = 0.01;
-    const cube = this.gui.addFolder('Cube');
-    this.cubeRed.position.set(0.01, 25.01, 0.01);
-    cube.add(this.cubeRed.position, 'x', -5.0, 5.0).step(0.01).listen();
-    cube.add(this.cubeRed.position, 'y', 5.0, 25.0).step(0.01).listen();
-    cube.add(this.cubeRed.position, 'z', -5.0, 5.0).step(0.01).listen();
-    cube.add(this, 'drag', -5.0, 5.0).step(0.01).listen();
-    //gui.add(controlObject.quaternion, 'x', -1.0, 1.0).step(0.01).listen();
-    cube.open();
   }
 
   initEngine() {
@@ -155,7 +140,6 @@ export default class Main {
 
   init() {
     this.params = {
-      Project: 1,
       SphereSize: 1,
       Movement: 0,
       Bounce: 0.3,
@@ -170,12 +154,6 @@ export default class Main {
 
     const maxParticles = 5000;
 
-    const project = this.gui.addFolder('Project Settings');
-    project.add(this.params, 'Project', {
-      'Particles & Cloth': 1,
-      Animation: 2
-    });
-    project.open();
     const settings = this.gui.addFolder('Settings');
     settings.add(this.params, 'SphereSize', 0.1, 2, 0.1);
     settings.add(this.params, 'Movement', {
@@ -195,7 +173,7 @@ export default class Main {
     controls.add(this.params, 'Reset');
     controls.open();
     this.guimenu = [];
-    this.guimenu.push(project, settings, controls);
+    this.guimenu.push(settings, controls);
 
     this.deltaSum = 0;
     this.particles = [];
@@ -470,20 +448,28 @@ export default class Main {
     });
   }
 
-  visibilityProject(show) {
-    this.clothObject.visible = show;
-    this.geometries.map(({
-      mesh
-    }) => (mesh.visible = show));
-    this.bars.map(mesh => (mesh.visible = show));
-    this.particles.map(particle => (particle.particle.visible = show));
-    this.params.Ball && show ? this.ball.visible = show : this.ball.visible = false
-    this.cubeRed.visible = !show;
-    this.rigidPlane.visible = !show;
-  }
+  render(time) {
+    // Render rStats if Dev
+    if (Config.isDev && Config.isShowingStats) {
+      Stats.start();
+    }
 
-  renderProj1(time, delta) {
-    this.visibilityProject(true);
+    // Call render function and pass in created scene and camera
+    this.renderer.render(this.scene, this.camera.threeCamera);
+
+    // rStats has finished determining render call now
+    if (Config.isDev && Config.isShowingStats) {
+      Stats.end();
+    }
+
+    // Delta time is sometimes needed for certain updates
+    const delta = this.clock.getDelta();
+
+    // Call any vendor or module frame updates here
+    TWEEN.update();
+    this.controls.threeControls.update();
+
+    //this.visibilityProject(true);
     if (this.params.Reset) this.resetGuiParticles(delta);
     if (this.params.Bomb) this.bomb(delta);
 
@@ -535,72 +521,6 @@ export default class Main {
 
         particle.render();
       });
-  }
-
-  renderProj2(time, delta) {
-    this.visibilityProject(false);
-
-    var forcey = 0;
-
-    /* Gravity of Earth */
-    forcey += this.cube.m * 9.81;
-
-    /* Air resistance force; this would affect both x- and y-directions, but we're only looking at the y-axis in this example. */
-    // https://en.wikipedia.org/wiki/Drag_(physics)
-    var drag = -0.5 * this.cube.rho * this.cube.cubeDrag * this.cube.A * this.cube.vy * this.cube.vy;
-    this.drag = drag;
-    forcey += drag;
-
-    /* Verlet integration for the y-direction */
-    var dx = this.cube.vx * delta + (0.5 * this.cube.ax * delta * delta);
-    var dy = this.cube.vy * delta + (0.5 * this.cube.ay * delta * delta);
-    var dz = this.cube.vz * delta + (0.5 * this.cube.az * delta * delta);
-
-    if (this.cubeRed.position.y + this.cube.r <= this.cube.height && this.cube.vy > 0) {
-      /* This is a simplification of impulse-momentum collision response. e should be a negative number, which will change the velocity's direction. */
-      this.cube.vy *= this.cube.e;
-      /* Move the ball back a little bit so it's not still "stuck" in the wall. */
-      this.cubeRed.position.y = this.cube.height - this.cube.r;
-    } else {
-      /* The following line is because the math assumes meters but we're assuming 1 cm per pixel, so we need to scale the results */
-      this.cubeRed.position.x -= dx;
-      this.cubeRed.position.y -= dy;
-      this.cubeRed.position.z -= dz;
-      var newAccelY = forcey / this.cube.m;
-      var avgAccelY = 0.5 * (newAccelY + this.cube.ay);
-      this.cube.vy += avgAccelY * delta;
-      
-      var tempy = this.cubeRed.position.y - forcey / 100;
-      tempy >= 5 ? this.cubeRed.position.y = tempy : this.cubeRed.position.y = 5;
-    }
-  }
-
-  render(time) {
-    // Render rStats if Dev
-    if (Config.isDev && Config.isShowingStats) {
-      Stats.start();
-    }
-
-    // Call render function and pass in created scene and camera
-    this.renderer.render(this.scene, this.camera.threeCamera);
-
-    // rStats has finished determining render call now
-    if (Config.isDev && Config.isShowingStats) {
-      Stats.end();
-    }
-
-    // Delta time is sometimes needed for certain updates
-    const delta = this.clock.getDelta();
-
-    // Call any vendor or module frame updates here
-    TWEEN.update();
-    this.controls.threeControls.update();
-
-    if (this.params.Project == 1) {
-      this.renderProj1(time, delta);
-    } else if (this.params.Project == 2) {
-      this.renderProj2(time, delta);
-    }
 
     // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
